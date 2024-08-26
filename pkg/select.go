@@ -69,6 +69,7 @@ func NewSelect(ask string, items []string) *tea.Program {
 	repo := SelectModelEntity{
 		ask:   ask,
 		items: items,
+		index: 0,
 	}
 
 	return tea.NewProgram(repo)
