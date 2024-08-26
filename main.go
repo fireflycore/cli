@@ -15,11 +15,11 @@ var ask = []string{
 
 func main() {
 	//cmd.Execute()
-	ip := pkg.NewInput(ask[0])
-	if _, err := ip.Run(); err != nil {
-		fmt.Println(err)
-		return
-	}
+	//ip := pkg.NewInput(ask[0])
+	//if _, err := ip.Run(); err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
 
 	sp := pkg.NewSelect(ask[1], pkg.LANGUAGE)
 	if _, err := sp.Run(); err != nil {
