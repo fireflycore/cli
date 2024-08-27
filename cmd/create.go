@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/fireflycore/cli/pkg"
+	"github.com/fireflycore/cli/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -12,28 +11,7 @@ var createCmd = &cobra.Command{
 	Short: "create firefly microservice project",
 	Long:  `quickly create a firefly microservice framework.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-
-		config.Project, err = pkg.CreateProject()
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-
-		config.Language, err = pkg.CreateLanguage()
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-
-		dbs, _ := pkg.SelectDatabase(config.Language)
-		if config.Database == nil {
-			config.Database = []*pkg.DatabaseEntity{}
-		}
-		for _, item := range dbs {
-			input, _ := pkg.InputDatabaseConfig(item)
-			config.Database = append(config.Database, input)
-		}
+		internal.New()
 	},
 }
 
