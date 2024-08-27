@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"log"
 	"strings"
 )
 
-var config ConfigEntity
+var config *ConfigEntity
 
 type FormModelEntity struct {
 	askIndex      int
@@ -145,7 +144,9 @@ func (model FormModelEntity) View() string {
 	return str.String()
 }
 
-func New() {
+func New() (*ConfigEntity, error) {
+	config = &ConfigEntity{}
+
 	projectInput := textinput.New()
 	projectInput.Prompt = ""
 	projectInput.Focus()
@@ -160,8 +161,8 @@ func New() {
 
 	p := tea.NewProgram(form)
 	if _, err := p.Run(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	fmt.Println(config.Project, config.Language)
+	return config, nil
 }
