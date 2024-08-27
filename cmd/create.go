@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/fireflycore/cli/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +12,11 @@ var createCmd = &cobra.Command{
 	Short: "create firefly microservice project",
 	Long:  `quickly create a firefly microservice framework.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		internal.New()
+		_, err := internal.New()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	},
 }
 
