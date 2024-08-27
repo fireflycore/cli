@@ -12,7 +12,7 @@ var createCmd = &cobra.Command{
 	Short: "create firefly microservice project",
 	Long:  `quickly create a firefly microservice framework.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := internal.New()
+		_, err := internal.NewCreate()
 		if err != nil {
 			fmt.Println(err)
 			return

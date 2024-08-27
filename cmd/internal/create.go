@@ -144,7 +144,7 @@ func (model FormModelEntity) View() string {
 	return str.String()
 }
 
-func New() (*ConfigEntity, error) {
+func NewCreate() (*ConfigEntity, error) {
 	config = &ConfigEntity{}
 
 	projectInput := textinput.New()
