@@ -131,7 +131,12 @@ func (model FormModelEntity) View() string {
 	if model.askIndex == len(ASK) {
 		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[0])), primary.Render(config.Project)))
 		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[1])), primary.Render(config.Language)))
-		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(ASK[2])))
+
+		var dbs []string
+		for _, item := range DatabaseList {
+			dbs = append(dbs, item.Type)
+		}
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[2])), primary.Render(strings.Join(dbs, ", "))))
 	}
 
 	prefix := warning.Render("->")
