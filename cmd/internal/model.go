@@ -1,4 +1,4 @@
-package pkg
+package internal
 
 type ConfigEntity struct {
 	Project  string            `json:"project" yaml:"project" mapstructure:"project"`
