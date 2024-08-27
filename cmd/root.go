@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fireflycore/cli/pkg"
+	"github.com/fireflycore/cli/cmd/internal"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var config pkg.ConfigEntity
+var config internal.ConfigEntity
 
 var rootCmd = &cobra.Command{
 	Use:   "firefly",
