@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var config internal.ConfigEntity
+var config *internal.ConfigEntity
 
 var release = "v0.0.1"
 
