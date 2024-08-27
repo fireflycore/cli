@@ -10,10 +10,12 @@ import (
 
 var config internal.ConfigEntity
 
+var release = "v0.0.1"
+
 var rootCmd = &cobra.Command{
-	Use:   "firefly",
-	Short: "firefly cli",
-	Long:  `firefly cli tools`,
+	Use:     "firefly",
+	Short:   "Firefly: An elegant toolkit for Go microservices.",
+	Version: release,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("firefly-cli run hooks")
 	},
@@ -35,7 +37,4 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-
-	//rootCmd.PersistentFlags().StringVar(&project, "project", "", "set project name")
-	//rootCmd.PersistentFlags().StringVar(&language, "language", "", "set develop language")
 }
