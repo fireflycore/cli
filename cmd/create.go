@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/fireflycore/cli/cmd/internal"
+	"github.com/fireflycore/cli/cmd/internal/create"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ var createCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
+		create.GetRepo()
 	},
 }
 
