@@ -20,7 +20,7 @@ func GetRepoVersion(repo string, version string) {
 		panic(err)
 	}
 
-	templateCacheDir := fmt.Sprintf("%s/%s/template/%s", cacheDir, CLI_NAME, version)
+	templateCacheDir := fmt.Sprintf("%s/%s/template/%s", cacheDir, CliName, version)
 	info, err := os.Stat(templateCacheDir)
 	if err != nil {
 		if os.IsNotExist(err) {

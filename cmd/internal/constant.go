@@ -2,7 +2,7 @@ package internal
 
 import "github.com/charmbracelet/lipgloss"
 
-const REPO_OWNER = "lhdht"
+const CliName = "firefly"
 
 var ASK = []string{
 	"Please input your project name.",
