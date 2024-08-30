@@ -12,3 +12,7 @@ type DatabaseEntity struct {
 	Url    string `json:"url" yaml:"url" mapstructure:"url"`
 	Select bool   `json:"select" yaml:"select" mapstructure:"select"`
 }
+
+type GithubRepoVersion struct {
+	TagName string `json:"tag_name"`
+}
