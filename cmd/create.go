@@ -17,7 +17,7 @@ var createCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		internal.GetRepo()
+		internal.GetRepo(internal.CliName, "xaac", "Go", "")
 	},
 }
 
