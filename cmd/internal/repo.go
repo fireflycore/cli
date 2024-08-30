@@ -1,54 +1,131 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
-	"strings"
+	"runtime"
 )
 
-func GetRepoVersion(repo string, version string) {
-	if version == "" {
-		version = "latest"
+func GetTemplateRepo(language string) string {
+	var template string
 
-		// todo 获取最新
+	switch language {
+	case "Go":
+		template = "microservice-go"
+	case "NodeJS":
+		template = "microservice-node"
+	case "Rust":
+		template = "microservice-rust"
 	}
 
-	// 先从本地查看有无该版本号的缓存
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		panic(err)
-	}
-
-	templateCacheDir := fmt.Sprintf("%s/%s/template/%s", cacheDir, CliName, version)
-	info, err := os.Stat(templateCacheDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// todo 文件夹不存在, 获取最新版本
-		} else {
-			panic(err)
-		}
-	} else if !info.IsDir() {
-		// todo 文件夹不存在，获取最新版本
-	} else {
-		// todo 文件夹存在，将当前版本的模版copy一份-> template/temp, 项目创建完成后将 temp 目录清空
-	}
-
-	url := fmt.Sprintf("https://api.github.com/repos/lhdhtrc/microservice-go/releases/%s", version)
-	fmt.Println(url)
+	return template
 }
 
-func GetRepo() {
-	var version string
-	GetRepoVersion("", version)
+func GetRepoUrl(language string) string {
+	return fmt.Sprintf("https://github.com/lhdhtrc/%s.git", GetTemplateRepo(language))
+}
 
-	repo := "https://github.com/lhdhtrc/microservice-go"
-	language := "Go"
-
-	cacheDir := fmt.Sprintf("./.firefly/cache/template/%s/%", strings.ToLower(language), "")
-
-	cmd := exec.Command("git", "clone", "--depth=1", repo, cacheDir)
+func GetRepoLocal(language string, version string, dir string) error {
+	cmd := exec.Command("git", "clone", GetRepoUrl(language), dir)
 	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("get repo clone: %s", err)
+	}
+
+	cmdCheckout := exec.Command("git", "checkout", version, "--force")
+	cmdCheckout.Dir = dir // 设置工作目录为已克隆的仓库
+	if err := cmdCheckout.Run(); err != nil {
+		return fmt.Errorf("checkout version: %s", err)
+	}
+
+	cmdRemoveGit := exec.Command("rm", "-rf", ".git")
+	if runtime.GOOS == "windows" {
+		cmdRemoveGit = exec.Command("rd", "/s", "/q", ".git")
+	}
+	cmdRemoveGit.Dir = dir
+	if err := cmdRemoveGit.Run(); err != nil {
+		return fmt.Errorf("rm -rf .git: %s", err)
+	}
+
+	cmdInitGit := exec.Command("git", "init")
+	cmdInitGit.Dir = dir
+	if err := cmdInitGit.Run(); err != nil {
+		return fmt.Errorf("init store: %s", err)
+	}
+
+	return nil
+}
+
+func GetRepoVersion(language string, version string) (string, error) {
+	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/lhdhtrc/%s/releases/%s", GetTemplateRepo(language), version))
+	if err != nil {
 		panic(err)
 	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return "", err
+	}
+
+	var data GithubRepoVersion
+	body, _ := io.ReadAll(res.Body)
+	_ = json.Unmarshal(body, &data)
+	return data.TagName, nil
 }
+
+func GetRepo(cli string, project, language string, version string) error {
+	var err error
+	if version == "" || version == "latest" {
+		version, err = GetRepoVersion(language, "latest")
+		if err != nil {
+			return err
+		}
+	}
+
+	var cacheDir string
+	cacheDir, err = os.UserCacheDir()
+	if err != nil {
+		return err
+	}
+
+	templateCacheDir := fmt.Sprintf("%s/%s/template/%s", cacheDir, cli, version)
+	tempCacheDir := fmt.Sprintf("%s/%s/template/temp/%s", cacheDir, cli, project)
+
+	template, err := os.Stat(templateCacheDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+
+		if err = GetRepoLocal(language, version, templateCacheDir); err != nil {
+			return err
+		}
+	} else if !template.IsDir() {
+		return fmt.Errorf("%s is not a directory", templateCacheDir)
+	}
+
+	// 复制模板到临时目录
+	if err = CopyDir(templateCacheDir, tempCacheDir); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//func GetRepo() {
+//	var version string
+//	GetRepoVersion("", version)
+//
+//	repo := "https://github.com/lhdhtrc/microservice-go"
+//	language := "Go"
+//
+//	cacheDir := fmt.Sprintf("./.firefly/cache/template/%s/%", strings.ToLower(language), "")
+//
+//	cmd := exec.Command("git", "clone", "--depth=1", repo, cacheDir)
+//	if err := cmd.Run(); err != nil {
+//		panic(err)
+//	}
+//}
