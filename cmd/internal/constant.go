@@ -13,7 +13,7 @@ var ASK = []string{
 var LANGUAGE = []string{
 	"Go",
 	"Rust",
-	"Node.js",
+	"NodeJS",
 }
 
 var Database = map[string][]*DatabaseEntity{}
