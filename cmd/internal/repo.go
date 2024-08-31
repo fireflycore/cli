@@ -7,36 +7,42 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
+// GetTemplateRepo 获取模版仓库
 func GetTemplateRepo(language string) string {
-	var template string
-
 	switch language {
 	case "Go":
-		template = "microservice-go"
+		return "microservice-go"
 	case "NodeJS":
-		template = "microservice-node"
+		return "microservice-node"
 	case "Rust":
-		template = "microservice-rust"
+		return "microservice-rust"
+	default:
+		return ""
 	}
-
-	return template
 }
 
+// GetRepoUrl 获取仓库地址
 func GetRepoUrl(language string) string {
 	return fmt.Sprintf("https://github.com/lhdhtrc/%s.git", GetTemplateRepo(language))
 }
 
-func GetRepoLocal(language string, version string, dir string) error {
+// GetRepoToLocal 获取仓库到本地
+func GetRepoToLocal(language string, version string, dir string) error {
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return fmt.Errorf("creating directory: %s", err)
+	}
+
 	cmd := exec.Command("git", "clone", GetRepoUrl(language), dir)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("get repo clone: %s", err)
+		return fmt.Errorf("git clone: %s", err)
 	}
 
 	cmdCheckout := exec.Command("git", "checkout", version, "--force")
-	cmdCheckout.Dir = dir // 设置工作目录为已克隆的仓库
+	cmdCheckout.Dir = dir
 	if err := cmdCheckout.Run(); err != nil {
 		return fmt.Errorf("checkout version: %s", err)
 	}
@@ -48,24 +54,27 @@ func GetRepoLocal(language string, version string, dir string) error {
 	}
 	cmdRemoveGit.Dir = dir
 	if err := cmdRemoveGit.Run(); err != nil {
-		return fmt.Errorf("rm -rf .git: %s", err)
+		return fmt.Errorf("remove .git: %s", err)
 	}
 
 	cmdInitGit := exec.Command("git", "init")
 	cmdInitGit.Dir = dir
 	if err := cmdInitGit.Run(); err != nil {
-		return fmt.Errorf("init store: %s", err)
+		return fmt.Errorf("init git: %s", err)
 	}
 
 	return nil
 }
 
+// GetRepoVersion 获取仓库版本
 func GetRepoVersion(language string, version string) (string, error) {
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/lhdhtrc/%s/releases/%s", GetTemplateRepo(language), version))
 	if err != nil {
 		panic(err)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	if res.StatusCode != http.StatusOK {
 		return "", err
@@ -77,7 +86,8 @@ func GetRepoVersion(language string, version string) (string, error) {
 	return data.TagName, nil
 }
 
-func GetRepo(cli string, project, language string, version string) error {
+// GetRepo 获取仓库
+func GetRepo(cli, project, language, version string) error {
 	var err error
 	if version == "" || version == "latest" {
 		version, err = GetRepoVersion(language, "latest")
@@ -92,41 +102,25 @@ func GetRepo(cli string, project, language string, version string) error {
 		return err
 	}
 
-	templateCacheDir := fmt.Sprintf("%s/%s/template/%s", cacheDir, cli, version)
-	tempCacheDir := fmt.Sprintf("%s/%s/template/temp/%s", cacheDir, cli, project)
+	templateCacheDir := filepath.Join(cacheDir, cli, "template", version)
+	tempCacheDir := filepath.Join(cacheDir, cli, "template", "temp", project)
 
-	template, err := os.Stat(templateCacheDir)
+	templateInfo, err := os.Stat(templateCacheDir)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
 
-		if err = GetRepoLocal(language, version, templateCacheDir); err != nil {
+		if err = GetRepoToLocal(language, version, templateCacheDir); err != nil {
 			return err
 		}
-	} else if !template.IsDir() {
+	} else if !templateInfo.IsDir() {
 		return fmt.Errorf("%s is not a directory", templateCacheDir)
 	}
 
-	// 复制模板到临时目录
 	if err = CopyDir(templateCacheDir, tempCacheDir); err != nil {
 		return err
 	}
 
 	return nil
 }
-
-//func GetRepo() {
-//	var version string
-//	GetRepoVersion("", version)
-//
-//	repo := "https://github.com/lhdhtrc/microservice-go"
-//	language := "Go"
-//
-//	cacheDir := fmt.Sprintf("./.firefly/cache/template/%s/%", strings.ToLower(language), "")
-//
-//	cmd := exec.Command("git", "clone", "--depth=1", repo, cacheDir)
-//	if err := cmd.Run(); err != nil {
-//		panic(err)
-//	}
-//}
