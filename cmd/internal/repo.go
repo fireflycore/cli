@@ -42,7 +42,8 @@ func GetRepoLocal(language string, version string, dir string) error {
 	}
 
 	cmdRemoveGit := exec.Command("rm", "-rf", ".git")
-	if runtime.GOOS == "windows" {
+	switch runtime.GOOS {
+	case "windows":
 		cmdRemoveGit = exec.Command("rd", "/s", "/q", ".git")
 	}
 	cmdRemoveGit.Dir = dir
