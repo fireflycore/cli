@@ -4,8 +4,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const CliName = "firefly"
-
 var ASK = []string{
 	"Please input your project name.",
 	"Please choose your development language.",
