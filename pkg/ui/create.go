@@ -60,7 +60,7 @@ func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 2:
 				model.askIndex++
 			}
-			if model.askIndex+1 > len(ASK) {
+			if model.askIndex+1 > len(CREATE_PROBLEM) {
 				return model, tea.Quit
 			}
 		case " ":
@@ -82,14 +82,14 @@ func (model FormModelEntity) View() string {
 
 	// 处理第一个问题（如果尚未回答）
 	if model.askIndex == 0 && len(config.Project) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(ASK[0])))
+		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(CREATE_PROBLEM[0])))
 		str.WriteString(fmt.Sprintf("-> %s\n", model.projectInput.View()))
 	}
 
 	// 处理第二个问题（如果尚未回答）
 	if model.askIndex == 1 && len(config.Language) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[0])), primary.Render(config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(ASK[1])))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(config.Project)))
+		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(CREATE_PROBLEM[1])))
 
 		for ii, item := range LANGUAGE {
 			selected := "  "
@@ -103,9 +103,9 @@ func (model FormModelEntity) View() string {
 
 	// 处理第三个问题（如果尚未回答）
 	if model.askIndex == 2 && len(config.Database) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[0])), primary.Render(config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[1])), primary.Render(config.Language)))
-		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(ASK[2])))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(config.Project)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[1])), primary.Render(config.Language)))
+		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(CREATE_PROBLEM[2])))
 
 		for ii, item := range DatabaseList {
 			selected := "[ ]"
@@ -130,15 +130,15 @@ func (model FormModelEntity) View() string {
 	}
 
 	// 如果已经完成了所有问题
-	if model.askIndex == len(ASK) {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[0])), primary.Render(config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[1])), primary.Render(config.Language)))
+	if model.askIndex == len(CREATE_PROBLEM) {
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(config.Project)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[1])), primary.Render(config.Language)))
 
 		var dbs []string
 		for _, item := range DatabaseList {
 			dbs = append(dbs, item.Type)
 		}
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", ASK[2])), primary.Render(strings.Join(dbs, ", "))))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[2])), primary.Render(strings.Join(dbs, ", "))))
 	}
 
 	prefix := warning.Render("->")

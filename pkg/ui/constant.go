@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var ASK = []string{
+var CREATE_PROBLEM = []string{
 	"Please input your project name.",
 	"Please choose your development language.",
 	"Please select the database you want.",
