@@ -1,12 +1,16 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
 import (
-	"github.com/fireflycore/cli/cmd"
+	"fmt"
+	"github.com/fireflycore/cli/pkg/config"
 )
 
 func main() {
-	cmd.Execute()
+	//cmd.Execute()
+	entity, err := config.New()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(entity)
 }

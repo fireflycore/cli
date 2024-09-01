@@ -16,6 +16,13 @@ func New() (*CoreEntity, error) {
 		return nil, err
 	}
 
+	exe, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+
+	global.Setup = exe
+
 	global.Cache.Root = filepath.Join(cache, CLI_NAME)
 	global.Cache.Config = filepath.Join(global.Cache.Root, "config")
 	global.Cache.Template = filepath.Join(global.Cache.Root, "template")

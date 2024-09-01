@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fireflycore/cli/cmd/internal"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var config *internal.ConfigEntity
+const NAME = "firefly"
+const OWNER = "lhdhtrc"
 
 var release = "v0.0.1"
+var templateVersion string
 
 var rootCmd = &cobra.Command{
 	Use:     "firefly",

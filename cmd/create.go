@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fireflycore/cli/cmd/internal"
+	"github.com/fireflycore/cli/pkg/repo"
+	"github.com/fireflycore/cli/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -12,12 +13,28 @@ var createCmd = &cobra.Command{
 	Short: "create firefly microservice project",
 	Long:  `quickly create a firefly microservice framework.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := internal.NewCreate()
+		cfg, err := ui.NewCreate()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		internal.GetRepo(internal.CliName, "xaac", "Go", "")
+
+		rc, err := repo.New(&repo.ConfigEntity{
+			Dir:      NAME,
+			Owner:    OWNER,
+			Project:  cfg.Project,
+			Language: cfg.Language,
+			Version:  templateVersion,
+		})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		err = rc.GetRepo()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	},
 }
 
@@ -32,4 +49,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
+
+	createCmd.Flags().StringVar(&templateVersion, "version", "latest", "Template version parameter. The default value is the latest version")
 }
