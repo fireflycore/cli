@@ -21,7 +21,13 @@ func New() (*CoreEntity, error) {
 		return nil, err
 	}
 
+	cur, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
 	global.Setup = exe
+	global.Current = cur
 
 	global.Cache.Root = filepath.Join(cache, CLI_NAME)
 	global.Cache.Config = filepath.Join(global.Cache.Root, "config")
