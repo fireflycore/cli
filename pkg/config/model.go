@@ -12,3 +12,26 @@ type CoreEntity struct {
 	Cache   CacheConfigEntity `json:"cache" yaml:"cache" mapstructure:"cache"`
 	Version map[string]string `json:"version" yaml:"version" mapstructure:"version"`
 }
+
+type GlobalConfigEntity struct {
+	SetupDir string
+
+	LocalDir            string
+	LocalConfigFilePath string
+
+	CacheDir            string
+	CacheTemplateDir    string
+	CacheConfigFilePath string
+
+	Global *GlobalPersistenceStorageConfigEntity
+	Local  *LocalPersistenceStorageConfigEntity
+}
+
+type GlobalPersistenceStorageConfigEntity struct {
+	Version map[string]string `json:"version" yaml:"version" mapstructure:"version"`
+}
+
+type LocalPersistenceStorageConfigEntity struct {
+	Language string `json:"language" yaml:"language" mapstructure:"language"`
+	Version  string `json:"version" yaml:"version" mapstructure:"version"`
+}
