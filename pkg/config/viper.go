@@ -9,7 +9,6 @@ import (
 
 func New() (*CoreEntity, error) {
 	global := CoreEntity{}
-	//var current string
 
 	cache, err := os.UserCacheDir()
 	if err != nil {
@@ -33,7 +32,8 @@ func New() (*CoreEntity, error) {
 	global.Cache.Config = filepath.Join(global.Cache.Root, "config")
 	global.Cache.Template = filepath.Join(global.Cache.Root, "template")
 
-	configFilePath := filepath.Join(global.Cache.Config, fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE))
+	configFileName := fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
+	configFilePath := filepath.Join(global.Cache.Config, configFileName)
 
 	v := viper.New()
 	v.SetConfigName("cli")
@@ -70,6 +70,8 @@ func New() (*CoreEntity, error) {
 	if err = v.Unmarshal(&global); err != nil {
 		return nil, err
 	}
+
+	//currentFilePath := filepath.Join(global.Current, "cmd", CLI_NAME, configFileName)
 
 	return &global, nil
 }
