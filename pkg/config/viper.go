@@ -8,7 +8,10 @@ import (
 )
 
 func New() (*CoreEntity, error) {
-	global := CoreEntity{}
+	core := CoreEntity{
+		Global: &GlobalPersistenceStorageConfigEntity{},
+		Local:  &LocalPersistenceStorageConfigEntity{},
+	}
 
 	cache, err := os.UserCacheDir()
 	if err != nil {
@@ -25,37 +28,36 @@ func New() (*CoreEntity, error) {
 		return nil, err
 	}
 
-	global.Setup = exe
-	global.Current = cur
+	core.SetupDir = exe
+	core.LocalDir = cur
 
-	global.Cache.Root = filepath.Join(cache, CLI_NAME)
-	global.Cache.Config = filepath.Join(global.Cache.Root, "config")
-	global.Cache.Template = filepath.Join(global.Cache.Root, "template")
+	core.CacheDir = filepath.Join(cache, "cache", CLI_NAME)
+	core.CacheTemplateDir = filepath.Join(core.CacheDir, "template")
+
+	core.GlobalConfigPath = filepath.Join(core.CacheDir, "config")
+	core.LocalConfigPath = filepath.Join(core.LocalDir, "cmd", CLI_NAME)
 
 	configFileName := fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
-	configFilePath := filepath.Join(global.Cache.Config, configFileName)
 
 	v := viper.New()
 	v.SetConfigName("cli")
 	v.SetConfigType("yaml")
-	v.AddConfigPath(global.Cache.Config)
+	v.AddConfigPath(core.GlobalConfigPath)
 
-	_, err = os.Stat(configFilePath)
+	_, err = os.Stat(filepath.Join(core.GlobalConfigPath, configFileName))
 	if err != nil {
 		if os.IsNotExist(err) {
-			if err = os.MkdirAll(global.Cache.Config, 0755); err != nil {
+			if err = os.MkdirAll(core.GlobalConfigPath, 0755); err != nil {
 				return nil, err
 			}
 
-			global.Version = make(map[string]string)
+			core.Global.Version = make(map[string]string)
 			for _, language := range Language {
-				global.Version[language] = "latest"
+				core.Global.Version[language] = "latest"
 			}
+			v.Set("version", core.Global.Version)
 
-			v.Set("cache", global.Cache)
-			v.Set("version", global.Version)
-
-			if err = v.WriteConfigAs(configFilePath); err != nil {
+			if err = v.WriteConfigAs(filepath.Join(core.GlobalConfigPath, configFileName)); err != nil {
 				return nil, err
 			}
 		} else {
@@ -67,11 +69,9 @@ func New() (*CoreEntity, error) {
 		return nil, err
 	}
 
-	if err = v.Unmarshal(&global); err != nil {
+	if err = v.Unmarshal(&core.Global); err != nil {
 		return nil, err
 	}
 
-	//currentFilePath := filepath.Join(global.Current, "cmd", CLI_NAME, configFileName)
-
-	return &global, nil
+	return &core, nil
 }
