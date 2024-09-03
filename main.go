@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/fireflycore/cli/pkg/config"
+	"github.com/fireflycore/cli/pkg/store"
 )
 
 func main() {
 	//cmd.Execute()
-	entity, err := config.New()
+	cfg, err := config.New()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(entity)
+
+	store.Use.Config = cfg
 }
