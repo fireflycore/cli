@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	//cmd.Execute()
 	cfg, err := config.New()
 	if err != nil {
 		fmt.Println(err)
@@ -15,4 +14,5 @@ func main() {
 	}
 
 	store.Use.Config = cfg
+	//cmd.Execute()
 }
