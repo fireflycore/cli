@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func New() (*CoreEntity, error) {
@@ -39,39 +40,72 @@ func New() (*CoreEntity, error) {
 
 	configFileName := fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
 
-	v := viper.New()
-	v.SetConfigName("cli")
-	v.SetConfigType("yaml")
-	v.AddConfigPath(core.GlobalConfigPath)
-
-	_, err = os.Stat(filepath.Join(core.GlobalConfigPath, configFileName))
-	if err != nil {
-		if os.IsNotExist(err) {
-			if err = os.MkdirAll(core.GlobalConfigPath, 0755); err != nil {
-				return nil, err
-			}
-
-			core.Global.Version = make(map[string]string)
-			for _, language := range Language {
-				core.Global.Version[language] = "latest"
-			}
-			v.Set("version", core.Global.Version)
-
-			if err = v.WriteConfigAs(filepath.Join(core.GlobalConfigPath, configFileName)); err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	}
-
-	if err = v.ReadInConfig(); err != nil {
+	if err = core.loadGlobalConfig(configFileName); err != nil {
 		return nil, err
 	}
 
-	if err = v.Unmarshal(&core.Global); err != nil {
+	if err = core.loadLocalConfig(configFileName); err != nil {
 		return nil, err
 	}
 
 	return &core, nil
+}
+
+func (core *CoreEntity) loadGlobalConfig(file string) error {
+	gv := viper.New()
+	gv.SetConfigName("cli")
+	gv.SetConfigType("yaml")
+	gv.AddConfigPath(core.GlobalConfigPath)
+
+	_, err := os.Stat(filepath.Join(core.GlobalConfigPath, file))
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err = os.MkdirAll(core.GlobalConfigPath, 0755); err != nil {
+				return err
+			}
+
+			core.Global.Version = make(map[string]string)
+			for _, language := range Language {
+				core.Global.Version[strings.ToLower(language)] = "latest"
+			}
+			gv.Set("version", core.Global.Version)
+
+			if err = gv.WriteConfigAs(filepath.Join(core.GlobalConfigPath, file)); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	if err = gv.ReadInConfig(); err != nil {
+		return err
+	}
+
+	if err = gv.Unmarshal(&core.Global); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (core *CoreEntity) loadLocalConfig(file string) error {
+	_, err := os.Stat(filepath.Join(core.LocalConfigPath, file))
+	if err != nil {
+		core.Local = nil
+	} else {
+		lv := viper.New()
+		lv.SetConfigName("cli")
+		lv.SetConfigType("yaml")
+		lv.AddConfigPath(core.LocalConfigPath)
+
+		if err = lv.ReadInConfig(); err != nil {
+			return err
+		}
+
+		if err = lv.Unmarshal(&core.Local); err != nil {
+			return err
+		}
+	}
+	return nil
 }
