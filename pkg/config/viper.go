@@ -38,7 +38,7 @@ func New() (*CoreEntity, error) {
 	core.GlobalConfigPath = filepath.Join(core.CacheDir, "config")
 	core.LocalConfigPath = filepath.Join(core.LocalDir, "cmd", CLI_NAME)
 
-	configFileName := fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
+	core.ConfigFileName = fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
 
 	if err = core.loadGlobalConfig(configFileName); err != nil {
 		return nil, err
