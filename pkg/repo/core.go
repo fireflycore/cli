@@ -96,10 +96,20 @@ func (core *CoreEntity) RemoteToLocal() error {
 
 // GetVersion 获取仓库版本
 func (core *CoreEntity) GetVersion() (string, error) {
-	res, err := http.Get(fmt.Sprintf("%s/%s/releases/%s", core.api, core.GetTemplate(), core.Version))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s/releases/%s", core.api, core.GetTemplate(), core.Version), nil)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
+	if len(config.REPO_TOKEN) != 0 {
+		req.Header.Set("Authorization", config.REPO_TOKEN)
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(res.Body)
