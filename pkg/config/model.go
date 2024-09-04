@@ -6,6 +6,8 @@ type CoreEntity struct {
 	LocalDir        string
 	LocalConfigPath string
 
+	ConfigFileName string
+
 	CacheDir         string
 	CacheTemplateDir string
 
