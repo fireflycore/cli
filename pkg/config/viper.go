@@ -40,11 +40,11 @@ func New() (*CoreEntity, error) {
 
 	core.ConfigFileName = fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
 
-	if err = core.loadGlobalConfig(configFileName); err != nil {
+	if err = core.loadGlobalConfig(); err != nil {
 		return nil, err
 	}
 
-	if err = core.loadLocalConfig(configFileName); err != nil {
+	if err = core.loadLocalConfig(); err != nil {
 		return nil, err
 	}
 
