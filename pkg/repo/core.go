@@ -79,8 +79,7 @@ func (core *CoreEntity) RemoteToLocal() error {
 		return fmt.Errorf("checkout version: %s", err)
 	}
 
-	err := os.RemoveAll(filepath.Join(core.currentVersionTemplateCacheDir, ".git"))
-	if err != nil {
+	if err := os.RemoveAll(filepath.Join(core.currentVersionTemplateCacheDir, ".git")); err != nil {
 		return err
 	}
 
