@@ -89,8 +89,18 @@ func (core *CoreEntity) loadGlobalConfig() error {
 	return nil
 }
 
-func (core *CoreEntity) loadLocalConfig(file string) error {
-	_, err := os.Stat(filepath.Join(core.LocalConfigPath, file))
+func (core *CoreEntity) UpdateGlobalConfig() error {
+	core.gv.Set("version", core.Global.Version)
+
+	if err := core.gv.WriteConfigAs(filepath.Join(core.GlobalConfigPath, core.ConfigFileName)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (core *CoreEntity) loadLocalConfig() error {
+	_, err := os.Stat(filepath.Join(core.LocalConfigPath, core.ConfigFileName))
 	if err != nil {
 		core.Local = nil
 	} else {
@@ -107,5 +117,16 @@ func (core *CoreEntity) loadLocalConfig(file string) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (core *CoreEntity) UpdateLocalConfig() error {
+	core.lv.Set("language", core.Local.Language)
+	core.lv.Set("version", core.Local.Version)
+
+	if err := core.lv.WriteConfigAs(filepath.Join(core.LocalConfigPath, core.ConfigFileName)); err != nil {
+		return err
+	}
+
 	return nil
 }
