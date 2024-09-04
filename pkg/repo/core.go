@@ -57,12 +57,8 @@ func New(cfg *ConfigEntity) (*CoreEntity, error) {
 // GetTemplate 获取模版
 func (core *CoreEntity) GetTemplate() string {
 	switch core.Language {
-	case "Go":
+	case "go":
 		return "microservice-go"
-	case "NodeJS":
-		return "microservice-node"
-	case "Rust":
-		return "microservice-rust"
 	default:
 		return ""
 	}
