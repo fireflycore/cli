@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fireflycore/cli/pkg/config"
 	"github.com/fireflycore/cli/pkg/file"
+	"github.com/fireflycore/cli/pkg/store"
 	"io"
 	"net/http"
 	"os"
@@ -28,23 +29,27 @@ type CoreEntity struct {
 	currentProjectTempDir          string
 }
 
-func New(config *ConfigEntity) (*CoreEntity, error) {
+func New(cfg *ConfigEntity) (*CoreEntity, error) {
 	core := &CoreEntity{
-		ConfigEntity: config,
+		ConfigEntity: cfg,
 	}
-	core.api = fmt.Sprintf("https://api.github.com/repos/%s", core.Owner)
-	core.repo = fmt.Sprintf("https://github.com/%s/%s.git", config.Owner, core.GetTemplate())
+	core.api = fmt.Sprintf("https://api.github.com/repos/%s", config.REPO_OWNER)
+	core.repo = fmt.Sprintf("https://github.com/%s/%s.git", config.REPO_OWNER, core.GetTemplate())
 
-	if core.Version == "" || core.Version == "latest" || core.Store.Global.Version[config.Language] == "latest" {
+	if core.Version == "" || core.Version == "latest" || store.Use.Config.Global.Version[cfg.Language] == "latest" {
 		version, err := core.GetVersion()
 		if err != nil {
+			return nil, err
+		}
+		store.Use.Config.Global.Version[cfg.Language] = version
+		if err = store.Use.Config.UpdateGlobalConfig(); err != nil {
 			return nil, err
 		}
 		core.Version = version
 	}
 
-	core.currentProjectTempDir = filepath.Join(core.Store.CacheDir, "temp", core.Project)
-	core.currentVersionTemplateCacheDir = filepath.Join(core.Store.CacheTemplateDir, core.Version)
+	core.currentProjectTempDir = filepath.Join(store.Use.Config.CacheDir, "temp", core.Project)
+	core.currentVersionTemplateCacheDir = filepath.Join(store.Use.Config.CacheTemplateDir, core.Version)
 
 	return core, nil
 }
