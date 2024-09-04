@@ -12,8 +12,8 @@ var CREATE_PROBLEM = []string{
 
 var LANGUAGE = []string{
 	"Go",
-	"Rust",
-	"NodeJS",
+	//"Rust",
+	//"NodeJS",
 }
 
 var Database = map[string][]*DatabaseEntity{}
