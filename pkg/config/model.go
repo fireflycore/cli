@@ -1,5 +1,7 @@
 package config
 
+import "github.com/spf13/viper"
+
 type CoreEntity struct {
 	SetupDir string
 
@@ -15,6 +17,9 @@ type CoreEntity struct {
 
 	Global *GlobalPersistenceStorageConfigEntity
 	Local  *LocalPersistenceStorageConfigEntity
+
+	gv *viper.Viper
+	lv *viper.Viper
 }
 
 type GlobalPersistenceStorageConfigEntity struct {
