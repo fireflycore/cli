@@ -3,17 +3,18 @@ package repo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fireflycore/cli/pkg/config"
 	"github.com/fireflycore/cli/pkg/file"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 )
 
 type ConfigEntity struct {
-	Dir      string `json:"dir"`
+	Store *config.CoreEntity
+
 	Owner    string `json:"owner"`
 	Language string `json:"language"`
 	Version  string `json:"version"`
@@ -23,14 +24,11 @@ type ConfigEntity struct {
 type CoreEntity struct {
 	*ConfigEntity
 
-	api                     string
-	repo                    string
-	cacheDir                string
-	configDir               string
-	templateCacheDir        string
-	currentTemplateCacheDir string
+	api  string
+	repo string
 
-	tempProjectDir string
+	currentVersionTemplateCacheDir string
+	currentProjectTempDir          string
 }
 
 func New(config *ConfigEntity) (*CoreEntity, error) {
@@ -40,7 +38,7 @@ func New(config *ConfigEntity) (*CoreEntity, error) {
 	core.api = fmt.Sprintf("https://api.github.com/repos/%s", core.Owner)
 	core.repo = fmt.Sprintf("https://github.com/%s/%s.git", config.Owner, core.GetTemplate())
 
-	if core.Version == "" || core.Version == "latest" {
+	if core.Version == "" || core.Version == "latest" || core.Store.Global.Version[config.Language] == "latest" {
 		version, err := core.GetVersion()
 		if err != nil {
 			return nil, err
@@ -48,21 +46,8 @@ func New(config *ConfigEntity) (*CoreEntity, error) {
 		core.Version = version
 	}
 
-	cache, err := os.UserCacheDir()
-	if err != nil {
-		return nil, err
-	}
-
-	core.cacheDir = filepath.Join(cache, core.Dir, "cache")
-	core.configDir = filepath.Join(cache, core.Dir, "config")
-	core.templateCacheDir = filepath.Join(core.cacheDir, "template")
-	core.currentTemplateCacheDir = filepath.Join(core.templateCacheDir, core.Version)
-
-	core.tempProjectDir = filepath.Join(core.cacheDir, "temp", core.Project)
-
-	fmt.Println(core.cacheDir)
-	fmt.Println(core.currentTemplateCacheDir)
-	fmt.Println(core.tempProjectDir)
+	core.currentProjectTempDir = filepath.Join(core.Store.CacheDir, "temp", core.Project)
+	core.currentVersionTemplateCacheDir = filepath.Join(core.Store.CacheTemplateDir, core.Version)
 
 	return core, nil
 }
@@ -83,29 +68,24 @@ func (core *CoreEntity) GetTemplate() string {
 
 // RemoteToLocal 获取到本地
 func (core *CoreEntity) RemoteToLocal() error {
-	cmd := exec.Command("git", "clone", core.repo, core.currentTemplateCacheDir)
+	cmd := exec.Command("git", "clone", core.repo, core.currentVersionTemplateCacheDir)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("git clone: %s", err)
 	}
 
 	cmdCheckout := exec.Command("git", "checkout", core.Version, "--force")
-	cmdCheckout.Dir = core.currentTemplateCacheDir
+	cmdCheckout.Dir = core.currentVersionTemplateCacheDir
 	if err := cmdCheckout.Run(); err != nil {
 		return fmt.Errorf("checkout version: %s", err)
 	}
 
-	cmdRemoveGit := exec.Command("rm", "-rf", ".git")
-	switch runtime.GOOS {
-	case "windows":
-		cmdRemoveGit = exec.Command("rd", "/s", "/q", ".git")
-	}
-	cmdRemoveGit.Dir = core.currentTemplateCacheDir
-	if err := cmdRemoveGit.Run(); err != nil {
-		return fmt.Errorf("remove .git: %s", err)
+	err := os.RemoveAll(filepath.Join(core.currentVersionTemplateCacheDir, ".git"))
+	if err != nil {
+		return err
 	}
 
 	cmdInitGit := exec.Command("git", "init")
-	cmdInitGit.Dir = core.currentTemplateCacheDir
+	cmdInitGit.Dir = core.currentVersionTemplateCacheDir
 	if err := cmdInitGit.Run(); err != nil {
 		return fmt.Errorf("init git: %s", err)
 	}
@@ -136,7 +116,7 @@ func (core *CoreEntity) GetVersion() (string, error) {
 
 // GetRepo 获取仓库
 func (core *CoreEntity) GetRepo() error {
-	_, err := os.Stat(core.currentTemplateCacheDir)
+	_, err := os.Stat(core.currentVersionTemplateCacheDir)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -147,7 +127,7 @@ func (core *CoreEntity) GetRepo() error {
 		}
 	}
 
-	if err = file.CopyDir(core.currentTemplateCacheDir, core.tempProjectDir); err != nil {
+	if err = file.CopyDir(core.currentVersionTemplateCacheDir, core.currentProjectTempDir); err != nil {
 		return err
 	}
 
