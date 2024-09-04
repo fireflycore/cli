@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/fireflycore/cli/cmd"
 	"github.com/fireflycore/cli/pkg/config"
 	"github.com/fireflycore/cli/pkg/store"
 )
@@ -14,5 +15,5 @@ func main() {
 	}
 
 	store.Use.Config = cfg
-	//cmd.Execute()
+	cmd.Execute()
 }
