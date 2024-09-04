@@ -68,9 +68,8 @@ func (core *CoreEntity) loadGlobalConfig() error {
 			for _, language := range Language {
 				core.Global.Version[strings.ToLower(language)] = "latest"
 			}
-			gv.Set("version", core.Global.Version)
 
-			if err = gv.WriteConfigAs(filepath.Join(core.GlobalConfigPath, file)); err != nil {
+			if err = core.UpdateGlobalConfig(); err != nil {
 				return err
 			}
 		} else {
@@ -78,11 +77,11 @@ func (core *CoreEntity) loadGlobalConfig() error {
 		}
 	}
 
-	if err = gv.ReadInConfig(); err != nil {
+	if err = core.gv.ReadInConfig(); err != nil {
 		return err
 	}
 
-	if err = gv.Unmarshal(&core.Global); err != nil {
+	if err = core.gv.Unmarshal(&core.Global); err != nil {
 		return err
 	}
 
