@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/fireflycore/cli/pkg/repo"
+	"github.com/fireflycore/cli/pkg/store"
 	"github.com/fireflycore/cli/pkg/ui"
 	"github.com/spf13/cobra"
 )
@@ -17,6 +18,11 @@ var createCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println(err)
 			return
+		}
+
+		v := store.Use.Config.Global.Version[cfg.Language]
+		if v != "latest" && templateVersion == "latest" {
+			templateVersion = v
 		}
 
 		rc, err := repo.New(&repo.ConfigEntity{
