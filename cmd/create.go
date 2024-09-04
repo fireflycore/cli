@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fireflycore/cli/pkg/config"
 	"github.com/fireflycore/cli/pkg/repo"
+	"github.com/fireflycore/cli/pkg/store"
 	"github.com/fireflycore/cli/pkg/ui"
 	"github.com/spf13/cobra"
 )
@@ -20,8 +22,8 @@ var createCmd = &cobra.Command{
 		}
 
 		rc, err := repo.New(&repo.ConfigEntity{
-			Dir:      NAME,
-			Owner:    OWNER,
+			Store:    store.Use.Config,
+			Owner:    config.REPO_OWNER,
 			Project:  cfg.Project,
 			Language: cfg.Language,
 			Version:  templateVersion,
