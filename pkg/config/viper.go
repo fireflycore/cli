@@ -94,16 +94,16 @@ func (core *CoreEntity) loadLocalConfig(file string) error {
 	if err != nil {
 		core.Local = nil
 	} else {
-		lv := viper.New()
-		lv.SetConfigName("cli")
-		lv.SetConfigType("yaml")
-		lv.AddConfigPath(core.LocalConfigPath)
+		core.lv = viper.New()
+		core.lv.SetConfigName("cli")
+		core.lv.SetConfigType("yaml")
+		core.lv.AddConfigPath(core.LocalConfigPath)
 
-		if err = lv.ReadInConfig(); err != nil {
+		if err = core.lv.ReadInConfig(); err != nil {
 			return err
 		}
 
-		if err = lv.Unmarshal(&core.Local); err != nil {
+		if err = core.lv.Unmarshal(&core.Local); err != nil {
 			return err
 		}
 	}
