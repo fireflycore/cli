@@ -52,7 +52,7 @@ func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				config.Project = inputReg.ReplaceAllString(input, "")
 				model.askIndex++
 			case 1:
-				config.Language = LANGUAGE[model.languageIndex]
+				config.Language = strings.ToLower(LANGUAGE[model.languageIndex])
 				if list, ok := Database[config.Language]; ok {
 					DatabaseList = list
 				}
