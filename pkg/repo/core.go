@@ -13,9 +13,6 @@ import (
 )
 
 type ConfigEntity struct {
-	Store *config.CoreEntity
-
-	Owner    string `json:"owner"`
 	Language string `json:"language"`
 	Version  string `json:"version"`
 	Project  string `json:"project"`
