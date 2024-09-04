@@ -51,13 +51,13 @@ func New() (*CoreEntity, error) {
 	return &core, nil
 }
 
-func (core *CoreEntity) loadGlobalConfig(file string) error {
-	gv := viper.New()
-	gv.SetConfigName("cli")
-	gv.SetConfigType("yaml")
-	gv.AddConfigPath(core.GlobalConfigPath)
+func (core *CoreEntity) loadGlobalConfig() error {
+	core.gv = viper.New()
+	core.gv.SetConfigName("cli")
+	core.gv.SetConfigType("yaml")
+	core.gv.AddConfigPath(core.GlobalConfigPath)
 
-	_, err := os.Stat(filepath.Join(core.GlobalConfigPath, file))
+	_, err := os.Stat(filepath.Join(core.GlobalConfigPath, core.ConfigFileName))
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err = os.MkdirAll(core.GlobalConfigPath, 0755); err != nil {
