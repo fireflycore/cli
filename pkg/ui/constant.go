@@ -31,7 +31,7 @@ var (
 )
 
 func init() {
-	Database["Go"] = []*DatabaseEntity{
+	Database["go"] = []*DatabaseEntity{
 		{Type: "Mysql", Name: "", Url: "", Select: false},
 		{Type: "Mongo", Name: "", Url: "", Select: false},
 		{Type: "Redis", Name: "", Url: "", Select: false},
