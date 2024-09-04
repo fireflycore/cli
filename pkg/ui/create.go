@@ -48,7 +48,7 @@ func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			switch model.askIndex {
 			case 0:
-				input := model.projectInput.View()
+				input := model.projectInput.Value()
 				config.Project = inputReg.ReplaceAllString(input, "")
 				model.askIndex++
 			case 1:
