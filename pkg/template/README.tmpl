@@ -1,0 +1,17 @@
+# {{.ProjectName}} Service
+
+## Description
+{{.Description}}
+
+## Features
+{{range .Features}}
+- {{.}}
+{{end}}
+
+## Depend
+- logger service
+
+## Initial run command
+- `go mod tidy`
+- `go run script/core.go`
+- `go run main.go`
