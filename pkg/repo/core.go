@@ -138,5 +138,16 @@ func (core *CoreEntity) GetRepo() error {
 		return err
 	}
 
+	core.InitProject()
+
+	return nil
+}
+
+// InitProject 初始化项目
+func (core *CoreEntity) InitProject() error {
+	file.WalkDirAndReplace(core.Language, core.currentProjectTempDir, "microservice-go", core.Project)
+	file.ReplaceInFile(filepath.Join(core.currentProjectTempDir, "run.sh"), `"project_name"`, fmt.Sprintf(`"%s"`, core.Project))
+	file.CopyDir(core.currentProjectTempDir, store.Use.Config.LocalDir)
+	os.RemoveAll(core.currentProjectTempDir)
 	return nil
 }
