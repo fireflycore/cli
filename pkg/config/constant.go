@@ -21,3 +21,21 @@ var Language = []string{
 	//"C#",
 	//"Ruby",
 }
+
+var IgnoreDirs = map[string]map[string]bool{
+	"go": {
+		".git":    true,
+		".github": true,
+	},
+}
+
+var IgnoreFiles = map[string]map[string]bool{
+	"go": {
+		".gitignore":  true,
+		"config.yaml": true,
+		"go.sum":      true,
+		"LICENSE":     true,
+		"run.sh":      true,
+		"README.md":   true,
+	},
+}
