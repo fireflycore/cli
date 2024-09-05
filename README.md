@@ -1,7 +1,10 @@
 # Firefly Cli Tools
 
-#### introduce
+## Introduce
 Quickly create a minimalist microservices framework.
 
-#### method
+## Command
 - create
+
+## Build
+- `go build -ldflags "-s -w"`
