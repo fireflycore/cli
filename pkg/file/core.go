@@ -2,9 +2,11 @@ package file
 
 import (
 	"fmt"
+	"github.com/fireflycore/cli/pkg/config"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // CopyDir 复制一个目录到另一个位置
@@ -77,4 +79,68 @@ func CopyFile(src, dst string) error {
 	// 复制文件内容
 	_, err = io.Copy(out, in)
 	return err
+}
+
+func ReplaceInFile(filePath string, oldText, newText string) error {
+	// 读取文件内容
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	// 替换文本
+	newContent := strings.ReplaceAll(string(content), oldText, newText)
+
+	// 写入新内容到文件
+	err = os.WriteFile(filePath, []byte(newContent), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WalkDirAndReplace(language, dirPath, oldText, newText string) error {
+	// 遍历目录及其子目录
+	return filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err // 返回任何遍历时遇到的错误
+		}
+
+		// 检查是否需要忽略当前目录
+		relPath, err := filepath.Rel(dirPath, path)
+		if err != nil {
+			return err
+		}
+		parts := strings.Split(relPath, string(os.PathSeparator))
+		for _, part := range parts {
+			if config.IgnoreDirs[language][part] {
+				// 如果是要忽略的目录，则返回nil以跳过该目录及其子目录
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				// 如果当前文件位于要忽略的目录下，则也忽略该文件
+				return nil
+			}
+		}
+
+		// 检查是否需要忽略当前文件
+		if info.IsDir() {
+			// 目录不需要替换内容，只需检查是否需要忽略
+			return nil
+		}
+
+		if config.IgnoreFiles[language][filepath.Base(path)] {
+			// 如果是要忽略的文件，则直接返回nil
+			return nil
+		}
+
+		// 替换文件内容
+		err = ReplaceInFile(path, oldText, newText)
+		if err != nil {
+			return err // 返回替换文件内容时遇到的错误
+		}
+		fmt.Printf("Replaced in %s\n", path)
+		return nil
+	})
 }
