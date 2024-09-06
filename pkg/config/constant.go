@@ -22,6 +22,11 @@ var LANGUAGE = []string{
 	//"Ruby",
 }
 
+var TEXT_LANGUAGE = []string{
+	"en",
+	"zh",
+}
+
 var IgnoreDirs = map[string]map[string]bool{
 	"go": {
 		".git":    true,

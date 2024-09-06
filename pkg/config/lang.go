@@ -1,5 +1,9 @@
 package config
 
+var InitProblemTextLang = []string{
+	"Please select display text language",
+}
+
 var CreateProblemTextLang = map[string][]string{
 	"zh": {
 		"请输入项目名称.",
