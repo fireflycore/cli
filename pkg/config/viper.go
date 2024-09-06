@@ -65,7 +65,7 @@ func (core *CoreEntity) loadGlobalConfig() error {
 			}
 
 			core.Global.Version = make(map[string]string)
-			for _, language := range Language {
+			for _, language := range LANGUAGE {
 				core.Global.Version[strings.ToLower(language)] = "latest"
 			}
 

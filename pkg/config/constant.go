@@ -7,7 +7,7 @@ const CLI_CONFIG_FILE_TYPE = "yaml"
 const REPO_OWNER = "lhdhtrc"
 const REPO_TOKEN = ""
 
-var Language = []string{
+var LANGUAGE = []string{
 	"Go",
 	//"Rust",
 	//"Dart",
