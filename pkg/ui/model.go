@@ -8,7 +8,7 @@ type ConfigEntity struct {
 
 type DatabaseEntity struct {
 	Type   string `json:"type" yaml:"type" mapstructure:"type"`
-	Name   string `json:"name" yaml:"name" mapstructure:"name"`
+	DB     string `json:"db" yaml:"db" mapstructure:"db"`
 	Url    string `json:"url" yaml:"url" mapstructure:"url"`
 	Select bool   `json:"select" yaml:"select" mapstructure:"select"`
 }
