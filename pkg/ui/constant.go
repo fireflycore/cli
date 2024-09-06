@@ -10,12 +10,6 @@ var CREATE_PROBLEM = []string{
 	"Please select the database you want.",
 }
 
-var LANGUAGE = []string{
-	"Go",
-	//"Rust",
-	//"NodeJS",
-}
-
 var Database = map[string][]*DatabaseEntity{}
 var DatabaseList []*DatabaseEntity
 
@@ -32,8 +26,8 @@ var (
 
 func init() {
 	Database["go"] = []*DatabaseEntity{
-		{Type: "Mysql", Name: "", Url: "", Select: false},
-		{Type: "Mongo", Name: "", Url: "", Select: false},
-		{Type: "Redis", Name: "", Url: "", Select: false},
+		{Type: "Mysql", DB: "", Url: "", Select: false},
+		{Type: "Mongo", DB: "", Url: "", Select: false},
+		{Type: "Redis", DB: "", Url: "", Select: false},
 	}
 }
