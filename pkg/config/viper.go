@@ -90,6 +90,7 @@ func (core *CoreEntity) loadGlobalConfig() error {
 }
 
 func (core *CoreEntity) UpdateGlobalConfig() error {
+	core.gv.Set("text_language", core.Global.TextLanguage)
 	core.gv.Set("version", core.Global.Version)
 
 	if err := core.gv.WriteConfigAs(filepath.Join(core.GlobalConfigPath, core.ConfigFileName)); err != nil {
