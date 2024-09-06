@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fireflycore/cli/pkg/config"
 	"regexp"
 	"strings"
 )
 
-var config *ConfigEntity
 var inputReg = regexp.MustCompile("[^a-zA-Z0-9_]+")
 
-type FormModelEntity struct {
+type CreateFormModelEntity struct {
+	Config *ConfigEntity
+
 	askIndex      int
 	languageIndex int
 	databaseFocus int
@@ -19,11 +21,11 @@ type FormModelEntity struct {
 	projectInput textinput.Model
 }
 
-func (model FormModelEntity) Init() tea.Cmd {
+func (model CreateFormModelEntity) Init() tea.Cmd {
 	return nil
 }
 
-func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (model CreateFormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -39,7 +41,7 @@ func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				model.databaseFocus--
 			}
 		case "down":
-			if model.askIndex == 1 && (model.languageIndex < len(LANGUAGE)-1) {
+			if model.askIndex == 1 && (model.languageIndex < len(config.LANGUAGE)-1) {
 				model.languageIndex++
 			}
 			if model.askIndex == 2 && (model.databaseFocus < len(DatabaseList)-1) {
@@ -49,11 +51,11 @@ func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch model.askIndex {
 			case 0:
 				input := model.projectInput.Value()
-				config.Project = inputReg.ReplaceAllString(input, "")
+				model.Config.Project = inputReg.ReplaceAllString(input, "")
 				model.askIndex++
 			case 1:
-				config.Language = strings.ToLower(LANGUAGE[model.languageIndex])
-				if list, ok := Database[config.Language]; ok {
+				model.Config.Language = strings.ToLower(config.LANGUAGE[model.languageIndex])
+				if list, ok := Database[model.Config.Language]; ok {
 					DatabaseList = list
 				}
 				model.askIndex++
@@ -77,21 +79,21 @@ func (model FormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return model, cmd
 }
 
-func (model FormModelEntity) View() string {
+func (model CreateFormModelEntity) View() string {
 	var str strings.Builder
 
 	// 处理第一个问题（如果尚未回答）
-	if model.askIndex == 0 && len(config.Project) == 0 {
+	if model.askIndex == 0 && len(model.Config.Project) == 0 {
 		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(CREATE_PROBLEM[0])))
 		str.WriteString(fmt.Sprintf("-> %s\n", model.projectInput.View()))
 	}
 
 	// 处理第二个问题（如果尚未回答）
-	if model.askIndex == 1 && len(config.Language) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(config.Project)))
+	if model.askIndex == 1 && len(config.LANGUAGE) == 0 {
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(model.Config.Project)))
 		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(CREATE_PROBLEM[1])))
 
-		for ii, item := range LANGUAGE {
+		for ii, item := range config.LANGUAGE {
 			selected := "  "
 			if model.languageIndex == ii {
 				selected = focus.Render("->")
@@ -102,9 +104,9 @@ func (model FormModelEntity) View() string {
 	}
 
 	// 处理第三个问题（如果尚未回答）
-	if model.askIndex == 2 && len(config.Database) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[1])), primary.Render(config.Language)))
+	if model.askIndex == 2 && len(model.Config.Database) == 0 {
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(model.Config.Project)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[1])), primary.Render(model.Config.Language)))
 		str.WriteString(fmt.Sprintf("%s %s\n", primary.Render("<-"), info.Render(CREATE_PROBLEM[2])))
 
 		for ii, item := range DatabaseList {
@@ -131,8 +133,8 @@ func (model FormModelEntity) View() string {
 
 	// 如果已经完成了所有问题
 	if model.askIndex == len(CREATE_PROBLEM) {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[1])), primary.Render(config.Language)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[0])), primary.Render(model.Config.Project)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", CREATE_PROBLEM[1])), primary.Render(model.Config.Language)))
 
 		var dbs []string
 		for _, item := range DatabaseList {
@@ -148,13 +150,13 @@ func (model FormModelEntity) View() string {
 }
 
 func NewCreate() (*ConfigEntity, error) {
-	config = &ConfigEntity{}
-
 	projectInput := textinput.New()
 	projectInput.Prompt = ""
 	projectInput.Focus()
 
-	form := FormModelEntity{
+	form := CreateFormModelEntity{
+		Config: &ConfigEntity{},
+
 		askIndex:      0,
 		languageIndex: 0,
 		databaseFocus: 0,
@@ -167,9 +169,9 @@ func NewCreate() (*ConfigEntity, error) {
 		return nil, err
 	}
 
-	if config.Project == "" || config.Language == "" {
+	if form.Config.Project == "" || form.Config.Language == "" {
 		return nil, fmt.Errorf("messing necessary params")
 	}
 
-	return config, nil
+	return form.Config, nil
 }
