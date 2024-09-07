@@ -7,7 +7,13 @@ Quickly create a minimalist microservices framework.
 - config
 - create
 - update
-
+- proto
+  - add
+  - update
+- run
+  - dev
+  - build
+- db
 
 ## Build
 - `go build -ldflags "-s -w"`
