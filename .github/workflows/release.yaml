@@ -1,27 +1,20 @@
-name: Cross-Platform-Build
+name: release
 
 on:
   release:
     types: [created] # 标识在创建新的 Release 时触发
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, darwin, windows] # 需要打包的系统
         goarch: [amd64, arm64] # 需要打包的架构
-
-    runs-on:
-      # 根据操作系统和架构动态选择runner
-      - ${{ if eq(goos, 'windows') -}}
-        windows-latest
-      { { - else - } }
-      ${{ if eq(goarch, 'arm64') -}}
-      macos-latest  # macOS ARM64支持
-      { { - else - } }
-      ubuntu-latest  # 对于Linux和macOS x64（通过Docker或类似工具）
-      { { - end } }
-      { { - end } }
     steps:
       - uses: actions/checkout@v3
       - uses: wangyoucao577/go-release-action@v1.30
