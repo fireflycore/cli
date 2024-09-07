@@ -52,16 +52,16 @@ func (model ConfigFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (model ConfigFormEntity) View() string {
 	var str strings.Builder
 
-	prefix := primary.Render("<-")
+	prefix := config.Color.Primary.Render("<-")
 	// 处理第一个问题（如果尚未回答）
 	if model.problemIndex == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), primary.Render(store.Use.Config.Global.TextLanguage)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, config.Color.Info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), config.Color.Primary.Render(store.Use.Config.Global.TextLanguage)))
 
 		for ii, item := range config.TEXT_LANGUAGE {
 			selected := "  "
 			if model.textLanguageIndex == ii {
-				selected = focus.Render("->")
-				item = focus.Render(item)
+				selected = config.Color.Focus.Render("->")
+				item = config.Color.Focus.Render(item)
 			}
 			str.WriteString(fmt.Sprintf("%s %s\n", selected, item))
 		}
@@ -69,9 +69,9 @@ func (model ConfigFormEntity) View() string {
 
 	// 如果已经完成了所有问题
 	if model.problemIndex == len(config.CONFIG_PROBLEM) {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), primary.Render(store.Use.Config.Global.TextLanguage)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, config.Color.Info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), config.Color.Primary.Render(store.Use.Config.Global.TextLanguage)))
 	} else {
-		prefix = warning.Render("->")
+		prefix = config.Color.Warning.Render("->")
 		tips := config.TIPS_TEXT[store.Use.Config.Global.TextLanguage]
 		for index, item := range tips {
 			str.WriteString(fmt.Sprintf("\n%s %s", prefix, item))
