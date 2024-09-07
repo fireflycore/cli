@@ -1,6 +1,9 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/viper"
+)
 
 type CoreEntity struct {
 	SetupDir string
@@ -30,4 +33,12 @@ type GlobalPersistenceStorageConfigEntity struct {
 type LocalPersistenceStorageConfigEntity struct {
 	Language string `json:"language" yaml:"language" mapstructure:"language"`
 	Version  string `json:"version" yaml:"version" mapstructure:"version"`
+}
+
+type ColorConfig struct {
+	Primary lipgloss.Style
+	Warning lipgloss.Style
+	Danger  lipgloss.Style
+	Info    lipgloss.Style
+	Focus   lipgloss.Style
 }
