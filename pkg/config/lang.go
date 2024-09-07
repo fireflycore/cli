@@ -8,12 +8,10 @@ var CREATE_PROBLEM = map[string][]string{
 	"zh": {
 		"请输入项目名称.",
 		"请选择开发语言.",
-		"请选择数据库.",
 	},
 	"en": {
 		"Please input your project name.",
 		"Please choose your development language.",
-		"Please select the database you want.",
 	},
 }
 
