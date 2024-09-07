@@ -15,6 +15,11 @@ jobs:
       matrix:
         goos: [linux, darwin, windows] # 需要打包的系统
         goarch: [amd64, arm64] # 需要打包的架构
+        exclude: # 排除某些平台和架构
+          - goarch: arm64
+            goos: windows
+          - goarch: arm64
+            goos: linux
     steps:
       - uses: actions/checkout@v3
       - uses: wangyoucao577/go-release-action@v1.30
