@@ -23,7 +23,6 @@ type CoreEntity struct {
 }
 
 type GlobalPersistenceStorageConfigEntity struct {
-	InitFlag     bool              `json:"init_flag" yaml:"init_flag" mapstructure:"init_flag"`
 	TextLanguage string            `json:"text_language" yaml:"text_language" mapstructure:"text_language"`
 	Version      map[string]string `json:"version" yaml:"version" mapstructure:"version"`
 }
