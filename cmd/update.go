@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +12,8 @@ var updateCmd = &cobra.Command{
 If you run the command in the directory created using the firefly-cli, the current project framework kernel will be upgraded. Please check the upgrade document before upgrading.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("update called")
+		// 检查当前版本是否是最新版本
+		// 将api目录直接拷贝到新版本中
 	},
 }
 
