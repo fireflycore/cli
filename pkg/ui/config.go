@@ -52,9 +52,10 @@ func (model ConfigFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (model ConfigFormEntity) View() string {
 	var str strings.Builder
 
+	prefix := primary.Render("<-")
 	// 处理第一个问题（如果尚未回答）
 	if model.problemIndex == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), primary.Render(store.Use.Config.Global.TextLanguage)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), primary.Render(store.Use.Config.Global.TextLanguage)))
 
 		for ii, item := range config.TEXT_LANGUAGE {
 			selected := "  "
@@ -68,11 +69,17 @@ func (model ConfigFormEntity) View() string {
 
 	// 如果已经完成了所有问题
 	if model.problemIndex == len(config.CONFIG_PROBLEM) {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", primary.Render("<-"), info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), primary.Render(store.Use.Config.Global.TextLanguage)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, info.Render(fmt.Sprintf("%s -", config.CONFIG_PROBLEM[0])), primary.Render(store.Use.Config.Global.TextLanguage)))
+	} else {
+		prefix = warning.Render("->")
+		tips := config.TIPS_TEXT[store.Use.Config.Global.TextLanguage]
+		for index, item := range tips {
+			str.WriteString(fmt.Sprintf("\n%s %s", prefix, item))
+			if index == len(tips)-1 {
+				str.WriteString("\n")
+			}
+		}
 	}
-
-	prefix := warning.Render("->")
-	str.WriteString(fmt.Sprintf("\n%s ctrl+c or q to exit the cli.\n%s enter confirm or next step.\n", prefix, prefix))
 
 	return str.String()
 }
