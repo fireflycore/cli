@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"github.com/fireflycore/cli/pkg/repo"
 	"github.com/fireflycore/cli/pkg/store"
-	"github.com/fireflycore/cli/pkg/ui"
+	"github.com/fireflycore/cli/pkg/view"
 	"github.com/spf13/cobra"
 )
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create project",
+	Short: "Quick project creation.",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := ui.NewCreate()
+		cfg, err := view.NewCreate()
 		if err != nil {
 			fmt.Println(err)
 			return
