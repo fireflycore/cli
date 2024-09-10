@@ -8,7 +8,8 @@ import (
 
 // runBuildCmd represents the runBuild command
 var runBuildCmd = &cobra.Command{
-	Use: "build",
+	Use:   "build",
+	Short: "build current project",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("runBuild called")
 	},

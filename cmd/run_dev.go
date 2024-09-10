@@ -8,7 +8,8 @@ import (
 
 // runDevCmd represents the runDev command
 var runDevCmd = &cobra.Command{
-	Use: "dev",
+	Use:   "dev",
+	Short: "run current project",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("runDev called")
 	},
