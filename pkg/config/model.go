@@ -26,8 +26,7 @@ type CoreEntity struct {
 }
 
 type GlobalPersistenceStorageConfigEntity struct {
-	TextLanguage string            `json:"text_language" yaml:"text_language" mapstructure:"text_language"`
-	Version      map[string]string `json:"version" yaml:"version" mapstructure:"version"`
+	Version map[string]string `json:"version" yaml:"version" mapstructure:"version"`
 }
 
 type LocalPersistenceStorageConfigEntity struct {

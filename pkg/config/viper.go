@@ -65,7 +65,6 @@ func (core *CoreEntity) loadGlobalConfig() error {
 			}
 
 			core.Global.Version = make(map[string]string)
-			core.Global.TextLanguage = "en"
 			for _, language := range LANGUAGE {
 				core.Global.Version[strings.ToLower(language)] = "latest"
 			}
@@ -90,7 +89,6 @@ func (core *CoreEntity) loadGlobalConfig() error {
 }
 
 func (core *CoreEntity) UpdateGlobalConfig() error {
-	core.gv.Set("text_language", core.Global.TextLanguage)
 	core.gv.Set("version", core.Global.Version)
 
 	if err := core.gv.WriteConfigAs(filepath.Join(core.GlobalConfigPath, core.ConfigFileName)); err != nil {
