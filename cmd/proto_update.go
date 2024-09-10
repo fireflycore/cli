@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/fireflycore/cli/pkg/store"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +11,11 @@ var protoUpdateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Generate code through buf-cli.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("protoUpdate called")
+		if store.Use.Buf != nil {
+			// 校验buf是否存在，存在则实行生成命令
+		} else {
+			fmt.Println("The buf-cli configuration is not read in the current environment")
+		}
 	},
 }
 
