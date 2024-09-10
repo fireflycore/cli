@@ -1,21 +1,17 @@
 package cmd
 
 import (
-	"os"
-
+	"github.com/fireflycore/cli/pkg/config"
 	"github.com/spf13/cobra"
+	"os"
 )
 
-const NAME = "firefly"
-const OWNER = "lhdhtrc"
-
-var release = "v0.0.1"
 var templateVersion string
 
 var rootCmd = &cobra.Command{
 	Use:     "firefly",
 	Short:   "Firefly: An elegant toolkit for Go microservices.",
-	Version: release,
+	Version: config.RELEASE,
 }
 
 func Execute() {
