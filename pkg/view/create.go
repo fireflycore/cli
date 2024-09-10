@@ -1,11 +1,10 @@
-package ui
+package view
 
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fireflycore/cli/pkg/config"
-	"github.com/fireflycore/cli/pkg/store"
 	"regexp"
 	"strings"
 )
@@ -13,12 +12,13 @@ import (
 var inputReg = regexp.MustCompile("[^a-zA-Z0-9_]+")
 
 type CreateFormModelEntity struct {
-	Config *ConfigEntity
-
 	problemIndex  int
 	languageIndex int
 
 	input textinput.Model
+
+	Project  string
+	Language string
 }
 
 func (model CreateFormModelEntity) Init() tea.Cmd {
@@ -45,13 +45,13 @@ func (model CreateFormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch model.problemIndex {
 			case 0:
 				input := model.input.Value()
-				model.Config.Project = inputReg.ReplaceAllString(input, "")
+				model.Project = inputReg.ReplaceAllString(input, "")
 				model.problemIndex++
 			case 1:
-				model.Config.Language = strings.ToLower(config.LANGUAGE[model.languageIndex])
+				model.Language = strings.ToLower(config.LANGUAGE[model.languageIndex])
 				model.problemIndex++
 			}
-			if model.problemIndex+1 > len(config.CREATE_PROBLEM) {
+			if model.problemIndex+1 > len(CREATE_PROJECT_PROBLEM) {
 				return model, tea.Quit
 			}
 		}
@@ -67,36 +67,35 @@ func (model CreateFormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (model CreateFormModelEntity) View() string {
 	var str strings.Builder
 
-	prefix := config.Color.Primary.Render("<-")
-	problem := config.CREATE_PROBLEM[store.Use.Config.Global.TextLanguage]
+	prefix := PrimaryColor.Render("<-")
 	// 处理第一个问题（如果尚未回答）
-	if model.problemIndex == 0 && len(model.Config.Project) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s\n", prefix, config.Color.Info.Render(problem[0])))
+	if model.problemIndex == 0 && len(model.Project) == 0 {
+		str.WriteString(fmt.Sprintf("%s %s\n", prefix, InfoColor.Render(CREATE_PROJECT_PROBLEM[0])))
 		str.WriteString(fmt.Sprintf("-> %s\n", model.input.View()))
 	}
 
 	// 处理第二个问题（如果尚未回答）
-	if model.problemIndex == 1 && len(model.Config.Language) == 0 {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, config.Color.Info.Render(fmt.Sprintf("%s -", problem[0])), config.Color.Primary.Render(model.Config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s\n", prefix, config.Color.Info.Render(problem[1])))
+	if model.problemIndex == 1 && len(model.Language) == 0 {
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, InfoColor.Render(fmt.Sprintf("%s -", CREATE_PROJECT_PROBLEM[0])), PrimaryColor.Render(model.Project)))
+		str.WriteString(fmt.Sprintf("%s %s\n", prefix, InfoColor.Render(CREATE_PROJECT_PROBLEM[1])))
 
 		for ii, item := range config.LANGUAGE {
 			selected := "  "
 			if model.languageIndex == ii {
-				selected = config.Color.Focus.Render("->")
-				item = config.Color.Focus.Render(item)
+				selected = FocusColor.Render("->")
+				item = FocusColor.Render(item)
 			}
 			str.WriteString(fmt.Sprintf("%s %s\n", selected, item))
 		}
 	}
 
 	// 如果已经完成了所有问题
-	if model.problemIndex == len(problem) {
-		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, config.Color.Info.Render(fmt.Sprintf("%s -", problem[0])), config.Color.Primary.Render(model.Config.Project)))
-		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, config.Color.Info.Render(fmt.Sprintf("%s -", problem[1])), config.Color.Primary.Render(model.Config.Language)))
+	if model.problemIndex == len(CREATE_PROJECT_PROBLEM) {
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, InfoColor.Render(fmt.Sprintf("%s -", CREATE_PROJECT_PROBLEM[0])), PrimaryColor.Render(model.Project)))
+		str.WriteString(fmt.Sprintf("%s %s %s\n", prefix, InfoColor.Render(fmt.Sprintf("%s -", CREATE_PROJECT_PROBLEM[1])), PrimaryColor.Render(model.Language)))
 	} else {
-		prefix = config.Color.Warning.Render("->")
-		tips := config.TIPS_TEXT[store.Use.Config.Global.TextLanguage]
+		prefix = WarningColor.Render("->")
+		tips := TIPS_TEXT
 		for index, item := range tips {
 			str.WriteString(fmt.Sprintf("\n%s %s", prefix, item))
 			if index == len(tips)-1 {
@@ -108,17 +107,12 @@ func (model CreateFormModelEntity) View() string {
 	return str.String()
 }
 
-func NewCreate() (*ConfigEntity, error) {
+func NewCreate() (*CreateFormModelEntity, error) {
 	input := textinput.New()
 	input.Prompt = ""
 	input.Focus()
 
-	form := CreateFormModelEntity{
-		Config: &ConfigEntity{},
-
-		problemIndex:  0,
-		languageIndex: 0,
-
+	form := &CreateFormModelEntity{
 		input: input,
 	}
 
@@ -127,9 +121,9 @@ func NewCreate() (*ConfigEntity, error) {
 		return nil, err
 	}
 
-	if form.Config.Project == "" || form.Config.Language == "" {
+	if form.Project == "" || form.Language == "" {
 		return nil, fmt.Errorf("messing necessary params")
 	}
 
-	return form.Config, nil
+	return form, nil
 }
