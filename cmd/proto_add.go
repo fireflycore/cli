@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fireflycore/cli/pkg/store"
 
 	"github.com/spf13/cobra"
 )
@@ -10,7 +11,11 @@ import (
 var protoAddCmd = &cobra.Command{
 	Use: "add",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("protoAdd called")
+		if store.Use.Buf != nil {
+			fmt.Println(store.Use.Buf.Config.Inputs)
+		} else {
+			fmt.Println("current env not found buf-cli")
+		}
 	},
 }
 
