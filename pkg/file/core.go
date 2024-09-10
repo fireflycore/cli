@@ -114,7 +114,7 @@ func WalkDirAndReplace(language, dirPath, oldText, newText string) error {
 		}
 		parts := strings.Split(relPath, string(os.PathSeparator))
 		for _, part := range parts {
-			if config.IgnoreDirs[language][part] {
+			if config.IGNORE_DIRS[language][part] {
 				// 如果是要忽略的目录，则返回nil以跳过该目录及其子目录
 				if info.IsDir() {
 					return filepath.SkipDir
@@ -130,7 +130,7 @@ func WalkDirAndReplace(language, dirPath, oldText, newText string) error {
 			return nil
 		}
 
-		if config.IgnoreFiles[language][filepath.Base(path)] {
+		if config.IGNORE_FILES[language][filepath.Base(path)] {
 			// 如果是要忽略的文件，则直接返回nil
 			return nil
 		}

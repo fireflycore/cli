@@ -24,19 +24,14 @@ var LANGUAGE = []string{
 	//"Ruby",
 }
 
-var TEXT_LANGUAGE = []string{
-	"en",
-	"zh",
-}
-
-var IgnoreDirs = map[string]map[string]bool{
+var IGNORE_DIRS = map[string]map[string]bool{
 	"go": {
 		".git":    true,
 		".github": true,
 	},
 }
 
-var IgnoreFiles = map[string]map[string]bool{
+var IGNORE_FILES = map[string]map[string]bool{
 	"go": {
 		".gitignore":  true,
 		"config.yaml": true,
