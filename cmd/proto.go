@@ -6,7 +6,8 @@ import (
 
 // protoCmd represents the proto command
 var protoCmd = &cobra.Command{
-	Use: "proto",
+	Use:   "proto",
+	Short: "Generate proto code dynamically.",
 }
 
 func init() {

@@ -9,7 +9,7 @@ import (
 // protoAddStoreCmd represents the protoAddStore command
 var protoAddStoreCmd = &cobra.Command{
 	Use:   "store",
-	Short: "Add buf proto store",
+	Short: "Add buf proto store.",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("protoAddStore called")
 	},

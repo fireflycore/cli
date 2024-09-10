@@ -9,7 +9,7 @@ import (
 // configCmd represents the setConfig command
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "set or get global config",
+	Short: "Set or get global config",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = ui.NewConfig()
 	},

@@ -11,8 +11,7 @@ import (
 // createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "create firefly microservice project",
-	Long:  `quickly create a firefly microservice framework.`,
+	Short: "Create project",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := ui.NewCreate()
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "update framework kernel",
+	Short: "update framework kernel.",
 	Long: `If executed in a directory that is not created by the firefly-cli, the global framework kernel is upgraded.
 If you run the command in the directory created using the firefly-cli, the current project framework kernel will be upgraded. Please check the upgrade document before upgrading.
 	`,

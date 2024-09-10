@@ -7,7 +7,7 @@ import (
 // protoAddCmd represents the protoAdd command
 var protoAddCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Add proto store or module",
+	Short: "Add proto store or module.",
 }
 
 func init() {

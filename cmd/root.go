@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -17,9 +16,6 @@ var rootCmd = &cobra.Command{
 	Use:     "firefly",
 	Short:   "Firefly: An elegant toolkit for Go microservices.",
 	Version: release,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("firefly-cli run hooks")
-	},
 }
 
 func Execute() {

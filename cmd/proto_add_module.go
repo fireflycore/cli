@@ -9,7 +9,7 @@ import (
 // protoAddModuleCmd represents the protoAddModule command
 var protoAddModuleCmd = &cobra.Command{
 	Use:   "module",
-	Short: "Add buf proto module",
+	Short: "Add buf proto module.",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("protoAddModule called")
 	},
