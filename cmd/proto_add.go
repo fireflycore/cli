@@ -1,22 +1,13 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/fireflycore/cli/pkg/store"
-
 	"github.com/spf13/cobra"
 )
 
 // protoAddCmd represents the protoAdd command
 var protoAddCmd = &cobra.Command{
-	Use: "add",
-	Run: func(cmd *cobra.Command, args []string) {
-		if store.Use.Buf != nil {
-			fmt.Println(store.Use.Buf.Config.Inputs)
-		} else {
-			fmt.Println("current env not found buf-cli")
-		}
-	},
+	Use:   "add",
+	Short: "Add proto store or module",
 }
 
 func init() {

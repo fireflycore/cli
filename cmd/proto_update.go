@@ -8,7 +8,8 @@ import (
 
 // protoUpdateCmd represents the protoUpdate command
 var protoUpdateCmd = &cobra.Command{
-	Use: "update",
+	Use:   "update",
+	Short: "Generate code through buf-cli",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("protoUpdate called")
 	},

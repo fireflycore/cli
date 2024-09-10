@@ -1,17 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
 // protoCmd represents the proto command
 var protoCmd = &cobra.Command{
 	Use: "proto",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("proto called")
-	},
 }
 
 func init() {
