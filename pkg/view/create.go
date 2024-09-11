@@ -11,7 +11,7 @@ import (
 
 var inputReg = regexp.MustCompile("[^a-zA-Z0-9_]+")
 
-type CreateFormModelEntity struct {
+type CreateFormEntity struct {
 	problemIndex  int
 	languageIndex int
 
@@ -21,11 +21,11 @@ type CreateFormModelEntity struct {
 	Language string
 }
 
-func (model CreateFormModelEntity) Init() tea.Cmd {
+func (model *CreateFormEntity) Init() tea.Cmd {
 	return nil
 }
 
-func (model CreateFormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (model *CreateFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -64,7 +64,7 @@ func (model CreateFormModelEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return model, cmd
 }
 
-func (model CreateFormModelEntity) View() string {
+func (model *CreateFormEntity) View() string {
 	var str strings.Builder
 
 	prefix := PrimaryColor.Render("<-")
@@ -107,12 +107,12 @@ func (model CreateFormModelEntity) View() string {
 	return str.String()
 }
 
-func NewCreate() (*CreateFormModelEntity, error) {
+func NewCreate() (*CreateFormEntity, error) {
 	input := textinput.New()
 	input.Prompt = ""
 	input.Focus()
 
-	form := &CreateFormModelEntity{
+	form := &CreateFormEntity{
 		input: input,
 	}
 
@@ -122,7 +122,7 @@ func NewCreate() (*CreateFormModelEntity, error) {
 	}
 
 	if form.Project == "" || form.Language == "" {
-		return nil, fmt.Errorf("messing necessary params")
+		return nil, fmt.Errorf(DangerColor.Render("messing necessary params"))
 	}
 
 	return form, nil
