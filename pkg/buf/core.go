@@ -1,6 +1,7 @@
 package buf
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -39,6 +40,20 @@ func New(path string) (*CoreEntity, error) {
 	}
 	if err := core.v.Unmarshal(core.Config); err != nil {
 		return nil, err
+	}
+
+	for ii, item := range core.Config.Inputs {
+		if v, ok := item.(map[string]interface{}); ok {
+			var row interface{}
+			if _, ok = v["module"]; ok {
+				row = ModuleInputEntity{}
+			}
+			if _, ok = v["directory"]; ok {
+				row = LocalInputEntity{}
+			}
+			_ = mapstructure.Decode(item, &row)
+			core.Config.Inputs[ii] = &row
+		}
 	}
 
 	return core, nil
