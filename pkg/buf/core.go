@@ -21,6 +21,20 @@ func (core *CoreEntity) WriteConfig() error {
 	return nil
 }
 
+func (core *CoreEntity) GetModule() []*ModuleInputEntity {
+	var list []*ModuleInputEntity
+	for ii, item := range core.Config.Inputs {
+		if v, ok := item.(map[string]interface{}); ok {
+			if _, ok = v["module"]; ok {
+				var row ModuleInputEntity
+				_ = mapstructure.Decode(item, &row)
+				core.Config.Inputs[ii] = &row
+			}
+		}
+	}
+	return list
+}
+
 func New(path string) (*CoreEntity, error) {
 	core := &CoreEntity{
 		Config: &GenConfigEntity{},
