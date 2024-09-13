@@ -63,7 +63,7 @@ func New(path string) (*CoreEntity, error) {
 				row = LocalInputEntity{}
 			}
 			_ = mapstructure.Decode(item, &row)
-			core.Config.Inputs[ii] = &row
+			core.Config.Inputs[ii] = row
 		}
 	}
 
