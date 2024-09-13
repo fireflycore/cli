@@ -21,15 +21,12 @@ func (core *CoreEntity) WriteConfig() error {
 	return nil
 }
 
-func (core *CoreEntity) GetModule() []*ModuleInputEntity {
-	var list []*ModuleInputEntity
-	for ii, item := range core.Config.Inputs {
-		if v, ok := item.(map[string]interface{}); ok {
-			if _, ok = v["module"]; ok {
-				var row ModuleInputEntity
-				_ = mapstructure.Decode(item, &row)
-				core.Config.Inputs[ii] = &row
-			}
+func (core *CoreEntity) GetModule() []string {
+	var list []string
+	for _, item := range core.Config.Inputs {
+		fmt.Println(item)
+		if v, ok := item.(ModuleInputEntity); ok {
+			list = append(list, v.Module)
 		}
 	}
 	return list
