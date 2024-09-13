@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/fireflycore/cli/pkg/store"
+	"github.com/fireflycore/cli/pkg/view"
 	"github.com/spf13/cobra"
 )
 
@@ -12,12 +13,12 @@ var protoAddStoreCmd = &cobra.Command{
 	Short: "Add buf proto store.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if store.Use.Buf != nil {
-			fmt.Println(store.Use.Buf.GetModule()[0].Module)
-			//_, err := view.NewProtoAddStore()
-			//if err != nil {
-			//	fmt.Println(err.Error())
-			//	return
-			//}
+			form, err := view.NewProtoAddStore()
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			store.Use.Buf.Config.AddGenStore(form.Mode, form.Store)
 		} else {
 			fmt.Println("The buf-cli configuration is not read in the current environment")
 		}
