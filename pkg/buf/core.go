@@ -1,6 +1,7 @@
 package buf
 
 import (
+	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"os"
@@ -24,7 +25,6 @@ func (core *CoreEntity) WriteConfig() error {
 func (core *CoreEntity) GetModule() []string {
 	var list []string
 	for _, item := range core.Config.Inputs {
-		fmt.Println(item)
 		if v, ok := item.(ModuleInputEntity); ok {
 			list = append(list, v.Module)
 		}
@@ -61,6 +61,7 @@ func New(path string) (*CoreEntity, error) {
 			}
 			if _, ok = v["directory"]; ok {
 				row = LocalInputEntity{}
+				fmt.Println("2ss")
 			}
 			_ = mapstructure.Decode(item, &row)
 			core.Config.Inputs[ii] = row
