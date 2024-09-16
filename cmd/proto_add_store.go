@@ -18,7 +18,11 @@ var protoAddStoreCmd = &cobra.Command{
 				fmt.Println(err.Error())
 				return
 			}
-			store.Use.Buf.Config.AddGenStore(form.Mode, form.Store)
+			if err := store.Use.Buf.Config.AddGenStore(form.Mode, form.Store); err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			_ = store.Use.Buf.WriteConfig()
 		} else {
 			fmt.Println("The buf-cli configuration is not read in the current environment")
 		}
