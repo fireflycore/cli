@@ -16,13 +16,15 @@ type ProtoAddModuleFormEntity struct {
 
 	Module string
 	Store  string
+
+	list []string
 }
 
-func (model ProtoAddModuleFormEntity) Init() tea.Cmd {
+func (model *ProtoAddModuleFormEntity) Init() tea.Cmd {
 	return nil
 }
 
-func (model ProtoAddModuleFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (model *ProtoAddModuleFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -41,11 +43,10 @@ func (model ProtoAddModuleFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			switch model.problemIndex {
 			case 0:
-				model.Store = strings.ToLower(config.LANGUAGE[model.storeIndex])
+				model.Store = model.list[model.storeIndex]
 				model.problemIndex++
 			case 1:
-				input := model.input.Value()
-				model.Module = inputReg.ReplaceAllString(input, "")
+				model.Module = model.input.Value()
 				model.problemIndex++
 			}
 			if model.problemIndex+1 > len(PROTO_ADD_MODULE) {
@@ -54,14 +55,14 @@ func (model ProtoAddModuleFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if model.problemIndex == 0 {
+	if model.problemIndex == 1 {
 		model.input, cmd = model.input.Update(msg)
 	}
 
 	return model, cmd
 }
 
-func (model ProtoAddModuleFormEntity) View() string {
+func (model *ProtoAddModuleFormEntity) View() string {
 	var str strings.Builder
 
 	prefix := PrimaryColor.Render("<-")
@@ -69,7 +70,7 @@ func (model ProtoAddModuleFormEntity) View() string {
 	if model.problemIndex == 0 {
 		str.WriteString(fmt.Sprintf("%s %s\n", prefix, InfoColor.Render(PROTO_ADD_MODULE[0])))
 
-		for ii, item := range config.LANGUAGE {
+		for ii, item := range model.list {
 			selected := "  "
 			if model.storeIndex == ii {
 				selected = FocusColor.Render("->")
@@ -104,13 +105,14 @@ func (model ProtoAddModuleFormEntity) View() string {
 	return str.String()
 }
 
-func NewProtoAddModule() (*ProtoAddModuleFormEntity, error) {
+func NewProtoAddModule(stores []string) (*ProtoAddModuleFormEntity, error) {
 	input := textinput.New()
 	input.Prompt = ""
 	input.Focus()
 
 	form := &ProtoAddModuleFormEntity{
 		input: input,
+		list:  stores,
 	}
 
 	p := tea.NewProgram(form)
@@ -119,7 +121,7 @@ func NewProtoAddModule() (*ProtoAddModuleFormEntity, error) {
 	}
 
 	if form.Store == "" || form.Module == "" {
-		return nil, fmt.Errorf("messing necessary params")
+		return nil, fmt.Errorf(DangerColor.Render("messing necessary params"))
 	}
 
 	return form, nil
