@@ -44,8 +44,7 @@ func (model *ProtoAddStoreFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				model.Mode = strings.ToLower(buf.STORE_TYPE[model.modeIndex])
 				model.problemIndex++
 			case 1:
-				input := model.input.Value()
-				model.Store = inputReg.ReplaceAllString(input, "")
+				model.Store = model.input.Value()
 				model.problemIndex++
 			}
 			if model.problemIndex+1 > len(PROTO_ADD_STORE) {
