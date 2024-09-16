@@ -6,7 +6,7 @@ const CLI_CONFIG_FILE_TYPE = "yaml"
 
 const RELEASE = "v0.0.6"
 
-const REPO_OWNER = "lhdhtrc"
+const REPO_OWNER = "fireflycore"
 const REPO_TOKEN = ""
 
 var LANGUAGE = []string{
