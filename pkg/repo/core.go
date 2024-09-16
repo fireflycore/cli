@@ -58,7 +58,7 @@ func New(cfg *ConfigEntity) (*CoreEntity, error) {
 func (core *CoreEntity) GetTemplate() string {
 	switch core.Language {
 	case "go":
-		return "microservice-go"
+		return "go-layout"
 	default:
 		return ""
 	}
