@@ -16,6 +16,9 @@ type CoreEntity struct {
 }
 
 func (core *CoreEntity) WriteConfig() error {
+	core.v.Set("managed", core.Config.Managed)
+	core.v.Set("plugins", core.Config.Plugins)
+	core.v.Set("inputs", core.Config.Inputs)
 	if err := core.v.WriteConfig(); err != nil {
 		return err
 	}
