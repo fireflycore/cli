@@ -35,6 +35,16 @@ func (core *CoreEntity) GetModule() []string {
 	return list
 }
 
+func (core *CoreEntity) GetModuleStores() []ModuleInputEntity {
+	var list []ModuleInputEntity
+	for _, item := range core.Config.Inputs {
+		if v, ok := item.(ModuleInputEntity); ok {
+			list = append(list, v)
+		}
+	}
+	return list
+}
+
 func New(path string) (*CoreEntity, error) {
 	core := &CoreEntity{
 		Config: &GenConfigEntity{},
