@@ -15,6 +15,10 @@ var PROTO_ADD_MODULE = []string{
 	"Please enter the module name.",
 }
 
+var PROTO_LIST_STORE = []string{
+	"Please select a store type.",
+}
+
 var PROTO_LIST_MODULE = []string{
 	"Please select a store.",
 }
