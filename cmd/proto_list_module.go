@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/fireflycore/cli/pkg/store"
+	"github.com/fireflycore/cli/pkg/view"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +12,15 @@ var protoListModuleCmd = &cobra.Command{
 	Use:   "module",
 	Short: "list",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("protoListModule called")
+		if store.Use.Buf != nil {
+			_, err := view.NewProtoListModule(store.Use.Buf.GetModuleStores())
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+		} else {
+			fmt.Println("The buf-cli configuration is not read in the current environment")
+		}
 	},
 }
 
