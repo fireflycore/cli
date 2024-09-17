@@ -25,36 +25,6 @@ func (core *CoreEntity) WriteConfig() error {
 	return nil
 }
 
-func (core *CoreEntity) GetModule() []string {
-	var list []string
-	for _, item := range core.Config.Inputs {
-		if v, ok := item.(ModuleInputEntity); ok {
-			list = append(list, v.Module)
-		}
-	}
-	return list
-}
-
-func (core *CoreEntity) GetModuleStores() []ModuleInputEntity {
-	var list []ModuleInputEntity
-	for _, item := range core.Config.Inputs {
-		if v, ok := item.(ModuleInputEntity); ok {
-			list = append(list, v)
-		}
-	}
-	return list
-}
-
-func (core *CoreEntity) GetLocalStores() []LocalInputEntity {
-	var list []LocalInputEntity
-	for _, item := range core.Config.Inputs {
-		if v, ok := item.(LocalInputEntity); ok {
-			list = append(list, v)
-		}
-	}
-	return list
-}
-
 func New(path string) (*CoreEntity, error) {
 	core := &CoreEntity{
 		Config: &GenConfigEntity{},

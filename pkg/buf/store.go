@@ -2,6 +2,26 @@ package buf
 
 import "fmt"
 
+func (gen *GenConfigEntity) GetModuleStores() []ModuleInputEntity {
+	var list []ModuleInputEntity
+	for _, item := range gen.Inputs {
+		if v, ok := item.(ModuleInputEntity); ok {
+			list = append(list, v)
+		}
+	}
+	return list
+}
+
+func (gen *GenConfigEntity) GetLocalStores() []LocalInputEntity {
+	var list []LocalInputEntity
+	for _, item := range gen.Inputs {
+		if v, ok := item.(LocalInputEntity); ok {
+			list = append(list, v)
+		}
+	}
+	return list
+}
+
 func (gen *GenConfigEntity) AddGenStore(mode, store string) error {
 	switch mode {
 	case "module":
