@@ -13,7 +13,7 @@ var protoAddModuleCmd = &cobra.Command{
 	Short: "Add buf proto module.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if store.Use.Buf != nil {
-			form, err := view.NewProtoAddModule(store.Use.Buf.GetModule())
+			form, err := view.NewProtoAddModule(store.Use.Buf.Config.GetModuleStores())
 			if err != nil {
 				fmt.Println(err.Error())
 				return

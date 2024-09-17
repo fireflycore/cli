@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fireflycore/cli/pkg/buf"
 	"github.com/fireflycore/cli/pkg/config"
 	"strings"
 )
@@ -17,7 +18,7 @@ type ProtoAddModuleFormEntity struct {
 	Module string
 	Store  string
 
-	list []string
+	list []buf.ModuleInputEntity
 }
 
 func (model *ProtoAddModuleFormEntity) Init() tea.Cmd {
@@ -43,7 +44,7 @@ func (model *ProtoAddModuleFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd) 
 		case "enter":
 			switch model.problemIndex {
 			case 0:
-				model.Store = model.list[model.storeIndex]
+				model.Store = model.list[model.storeIndex].Module
 				model.problemIndex++
 			case 1:
 				model.Module = model.input.Value()
@@ -74,9 +75,9 @@ func (model *ProtoAddModuleFormEntity) View() string {
 			selected := "  "
 			if model.storeIndex == ii {
 				selected = FocusColor.Render("->")
-				item = FocusColor.Render(item)
+				item.Module = FocusColor.Render(item.Module)
 			}
-			str.WriteString(fmt.Sprintf("%s %s\n", selected, item))
+			str.WriteString(fmt.Sprintf("%s %s\n", selected, item.Module))
 		}
 	}
 
@@ -105,7 +106,7 @@ func (model *ProtoAddModuleFormEntity) View() string {
 	return str.String()
 }
 
-func NewProtoAddModule(stores []string) (*ProtoAddModuleFormEntity, error) {
+func NewProtoAddModule(stores []buf.ModuleInputEntity) (*ProtoAddModuleFormEntity, error) {
 	input := textinput.New()
 	input.Prompt = ""
 	input.Focus()

@@ -14,7 +14,7 @@ var protoListStoreCmd = &cobra.Command{
 	Short: "list",
 	Run: func(cmd *cobra.Command, args []string) {
 		if store.Use.Buf != nil {
-			_, err := view.NewProtoListStore(store.Use.Buf.GetModuleStores(), store.Use.Buf.GetLocalStores())
+			_, err := view.NewProtoListStore(store.Use.Buf.Config.GetModuleStores(), store.Use.Buf.Config.GetLocalStores())
 			if err != nil {
 				fmt.Println(err.Error())
 				return

@@ -13,7 +13,7 @@ var protoListModuleCmd = &cobra.Command{
 	Short: "list",
 	Run: func(cmd *cobra.Command, args []string) {
 		if store.Use.Buf != nil {
-			_, err := view.NewProtoListModule(store.Use.Buf.GetModuleStores())
+			_, err := view.NewProtoListModule(store.Use.Buf.Config.GetModuleStores())
 			if err != nil {
 				fmt.Println(err.Error())
 				return
