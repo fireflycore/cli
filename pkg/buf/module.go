@@ -19,6 +19,19 @@ func (gen *GenConfigEntity) AddGenModule(store, module string) error {
 	return nil
 }
 
-func (gen *GenConfigEntity) RemoveGenModule(module string) {
-	fmt.Println(module)
+func (gen *GenConfigEntity) RemoveGenModule(store, module string) {
+	for i, item := range gen.Inputs {
+		if v, ok := item.(ModuleInputEntity); ok {
+			if v.Module == store {
+				var list []string
+				for _, m := range v.Types {
+					if m != module {
+						list = append(list, m)
+					}
+				}
+				v.Types = list
+				gen.Inputs[i] = v
+			}
+		}
+	}
 }
