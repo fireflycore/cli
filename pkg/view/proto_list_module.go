@@ -4,7 +4,6 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fireflycore/cli/pkg/buf"
-	"github.com/fireflycore/cli/pkg/config"
 	"strings"
 )
 
@@ -35,7 +34,7 @@ func (model *ProtoListModuleFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd)
 				model.storeIndex--
 			}
 		case "down":
-			if model.problemIndex == 0 && (model.storeIndex < len(config.LANGUAGE)-1) {
+			if model.problemIndex == 0 && (model.storeIndex < len(model.stores)-1) {
 				model.storeIndex++
 			}
 		case "enter":
