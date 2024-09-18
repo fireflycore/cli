@@ -23,6 +23,11 @@ var PROTO_LIST_MODULE = []string{
 	"Please select a store.",
 }
 
+var PROTO_REMOVE_MODULE = []string{
+	"Please select a store.",
+	"Please select the module you want to remove.",
+}
+
 var TIPS_TEXT = []string{
 	"ctrl+c or q to exit the cli.",
 	"enter confirm or next step.",
