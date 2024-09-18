@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fireflycore/cli/pkg/store"
+	"github.com/fireflycore/cli/pkg/view"
 
 	"github.com/spf13/cobra"
 )
@@ -9,9 +11,20 @@ import (
 // protoRemoveModuleCmd represents the protoRemoveModule command
 var protoRemoveModuleCmd = &cobra.Command{
 	Use:   "module",
-	Short: "Remove buf proto module.",
+	Short: "Remove buf proto module",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("protoRemoveModule called")
+		if store.Use.Buf != nil {
+			form, err := view.NewProtoRemoveModule(store.Use.Buf.Config.GetModuleStores())
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			store.Use.Buf.Config.RemoveGenModule(form.Store, form.Module)
+			_ = store.Use.Buf.WriteConfig()
+		} else {
+			fmt.Println("The buf-cli configuration is not read in the current environment")
+		}
 	},
 }
 
