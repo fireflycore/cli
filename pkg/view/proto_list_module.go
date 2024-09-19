@@ -94,6 +94,10 @@ func (model *ProtoListModuleFormEntity) View() string {
 }
 
 func NewProtoListModule(stores []buf.ModuleInputEntity) (*ProtoListModuleFormEntity, error) {
+	if len(stores) == 0 {
+		return nil, fmt.Errorf(WarningColor.Render("stores not found"))
+	}
+
 	form := &ProtoListModuleFormEntity{
 		stores: stores,
 	}
