@@ -17,6 +17,7 @@ type ProtoRemoveStoreFormEntity struct {
 
 	module []buf.ModuleInputEntity
 	local  []buf.LocalInputEntity
+	modes  []string
 }
 
 func (model *ProtoRemoveStoreFormEntity) Init() tea.Cmd {
@@ -39,7 +40,7 @@ func (model *ProtoRemoveStoreFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd
 				model.storeIndex--
 			}
 		case "down":
-			if model.problemIndex == 0 && (model.modeIndex < len(buf.STORE_TYPE)-1) {
+			if model.problemIndex == 0 && (model.modeIndex < len(model.modes)-1) {
 				model.modeIndex++
 			}
 			if model.problemIndex == 1 && model.Mode == "module" && (model.modeIndex < len(model.module)-1) {
@@ -51,7 +52,7 @@ func (model *ProtoRemoveStoreFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd
 		case "enter":
 			switch model.problemIndex {
 			case 0:
-				model.Mode = strings.ToLower(buf.STORE_TYPE[model.modeIndex])
+				model.Mode = strings.ToLower(model.modes[model.modeIndex])
 				model.problemIndex++
 			case 1:
 				if model.Mode == "module" {
@@ -85,7 +86,7 @@ func (model *ProtoRemoveStoreFormEntity) View() string {
 	if model.problemIndex == 0 {
 		str.WriteString(fmt.Sprintf("%s %s\n", prefix, InfoColor.Render(PROTO_REMOVE_STORE[0])))
 
-		for ii, item := range buf.STORE_TYPE {
+		for ii, item := range model.modes {
 			selected := "  "
 			if model.modeIndex == ii {
 				selected = FocusColor.Render("->")
@@ -144,6 +145,7 @@ func NewProtoRemoveStore(module []buf.ModuleInputEntity, local []buf.LocalInputE
 	form := &ProtoRemoveStoreFormEntity{
 		module: module,
 		local:  local,
+		modes:  mode,
 	}
 
 	p := tea.NewProgram(form)
