@@ -116,6 +116,10 @@ func (model *ProtoRemoveModuleFormEntity) View() string {
 }
 
 func NewProtoRemoveModule(stores []buf.ModuleInputEntity) (*ProtoRemoveModuleFormEntity, error) {
+	if len(stores) == 0 {
+		return nil, fmt.Errorf(WarningColor.Render("stores not found"))
+	}
+
 	form := &ProtoRemoveModuleFormEntity{
 		stores: stores,
 	}
