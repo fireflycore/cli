@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/fireflycore/cli/pkg/buf"
 	"github.com/fireflycore/cli/pkg/store"
 	"github.com/fireflycore/cli/pkg/view"
 
@@ -14,7 +15,7 @@ var protoRemoveStoreCmd = &cobra.Command{
 	Short: "Remove buf proto store",
 	Run: func(cmd *cobra.Command, args []string) {
 		if store.Use.Buf != nil {
-			form, err := view.NewProtoRemoveStore(store.Use.Buf.Config.GetModuleStores(), store.Use.Buf.Config.GetLocalStores())
+			form, err := view.NewProtoRemoveStore(buf.STORE_TYPE, store.Use.Buf.Config.GetModuleStores(), store.Use.Buf.Config.GetLocalStores())
 			if err != nil {
 				fmt.Println(err.Error())
 				return
