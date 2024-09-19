@@ -1,10 +1,13 @@
 package buf
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/fireflycore/cli/pkg/common"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -13,6 +16,8 @@ type CoreEntity struct {
 
 	p string
 	v *viper.Viper
+
+	Version string
 }
 
 func (core *CoreEntity) WriteConfig() error {
@@ -23,6 +28,15 @@ func (core *CoreEntity) WriteConfig() error {
 		return err
 	}
 	return nil
+}
+
+func (core *CoreEntity) version() {
+	cmd := exec.Command("buf", "--version")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	_ = cmd.Run()
+
+	core.Version = common.VersionRegexp.FindString(out.String())
 }
 
 func New(path string) (*CoreEntity, error) {
@@ -60,6 +74,8 @@ func New(path string) (*CoreEntity, error) {
 			core.Config.Inputs[ii] = row
 		}
 	}
+
+	core.version()
 
 	return core, nil
 }
