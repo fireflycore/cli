@@ -55,16 +55,10 @@ func (model *ProtoRemoveStoreFormEntity) Update(msg tea.Msg) (tea.Model, tea.Cmd
 				model.Mode = strings.ToLower(model.modes[model.modeIndex])
 				model.problemIndex++
 			case 1:
-				if model.Mode == "module" {
-					if len(model.module) == 0 {
-						return model, tea.Quit
-					}
+				switch model.Mode {
+				case "module":
 					model.Store = model.module[model.storeIndex].Module
-				}
-				if model.Mode == "local" {
-					if len(model.local) == 0 {
-						return model, tea.Quit
-					}
+				case "local":
 					model.Store = model.local[model.storeIndex].Directory
 				}
 				model.problemIndex++
@@ -141,7 +135,17 @@ func (model *ProtoRemoveStoreFormEntity) View() string {
 	return str.String()
 }
 
-func NewProtoRemoveStore(module []buf.ModuleInputEntity, local []buf.LocalInputEntity) (*ProtoRemoveStoreFormEntity, error) {
+func NewProtoRemoveStore(mode []string, module []buf.ModuleInputEntity, local []buf.LocalInputEntity) (*ProtoRemoveStoreFormEntity, error) {
+	if len(module) == 0 && len(local) != 0 {
+		mode = []string{"local"}
+	}
+	if len(local) == 0 && len(module) != 0 {
+		mode = []string{"module"}
+	}
+	if len(module) == 0 && len(local) == 0 {
+		return nil, fmt.Errorf(WarningColor.Render("stores not found."))
+	}
+
 	form := &ProtoRemoveStoreFormEntity{
 		module: module,
 		local:  local,
