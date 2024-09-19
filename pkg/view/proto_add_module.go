@@ -106,6 +106,10 @@ func (model *ProtoAddModuleFormEntity) View() string {
 }
 
 func NewProtoAddModule(stores []buf.ModuleInputEntity) (*ProtoAddModuleFormEntity, error) {
+	if len(stores) == 0 {
+		return nil, fmt.Errorf(WarningColor.Render("stores not found"))
+	}
+
 	input := textinput.New()
 	input.Prompt = ""
 	input.Focus()
