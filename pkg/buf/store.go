@@ -50,6 +50,23 @@ func (gen *GenConfigEntity) AddGenStore(mode, store string) error {
 	return nil
 }
 
-func (gen *GenConfigEntity) RemoveGenStore(store string) {
-	fmt.Println(store)
+func (gen *GenConfigEntity) RemoveGenStore(mode, store string) {
+	var inputs []interface{}
+	for _, item := range gen.Inputs {
+		switch mode {
+		case "module":
+			if v, ok := item.(ModuleInputEntity); ok {
+				if v.Module != store {
+					inputs = append(inputs, item)
+				}
+			}
+		case "local":
+			if v, ok := item.(LocalInputEntity); ok {
+				if v.Directory == store {
+					inputs = append(inputs, item)
+				}
+			}
+		}
+	}
+	gen.Inputs = inputs
 }
