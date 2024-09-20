@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/fireflycore/cli/pkg/view"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +11,10 @@ var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Check the required environment",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("env called")
+		_, err := view.NewEnvEcho()
+		if err != nil {
+			fmt.Println(err)
+		}
 	},
 }
 
