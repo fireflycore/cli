@@ -11,7 +11,7 @@ import (
 // createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Quick project creation.",
+	Short: "Quick project creation",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := view.NewCreate()
 		if err != nil {
