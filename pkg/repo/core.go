@@ -144,13 +144,12 @@ func (core *CoreEntity) GetRepo() error {
 }
 
 // InitProject 初始化项目
-func (core *CoreEntity) InitProject() error {
+func (core *CoreEntity) InitProject() {
 	switch core.Language {
 	case "go":
-		file.WalkDirAndReplace(core.Language, core.currentProjectTempDir, core.GetTemplate(), core.Project)
-		file.ReplaceInFile(filepath.Join(core.currentProjectTempDir, "run.sh"), `"project_name"`, fmt.Sprintf(`"%s"`, core.Project))
-		file.CopyDir(core.currentProjectTempDir, filepath.Join(store.Use.Config.LocalDir, core.Project))
-		os.RemoveAll(core.currentProjectTempDir)
+		_ = file.WalkDirAndReplace(core.Language, core.currentProjectTempDir, core.GetTemplate(), core.Project)
+		_ = file.ReplaceInFile(filepath.Join(core.currentProjectTempDir, "run.sh"), `"project_name"`, fmt.Sprintf(`"%s"`, core.Project))
+		_ = file.CopyDir(core.currentProjectTempDir, filepath.Join(store.Use.Config.LocalDir, core.Project))
+		_ = os.RemoveAll(core.currentProjectTempDir)
 	}
-	return nil
 }
