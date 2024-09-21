@@ -11,7 +11,6 @@ import (
 func New() (*CoreEntity, error) {
 	core := CoreEntity{
 		Global: &GlobalPersistenceStorageConfigEntity{},
-		Local:  &LocalPersistenceStorageConfigEntity{},
 	}
 
 	cache, err := os.UserCacheDir()
@@ -35,16 +34,10 @@ func New() (*CoreEntity, error) {
 	core.CacheDir = filepath.Join(cache, "cache", CLI_NAME)
 	core.CacheTemplateDir = filepath.Join(core.CacheDir, "template")
 
-	core.GlobalConfigPath = filepath.Join(core.CacheDir, "config")
-	core.LocalConfigPath = filepath.Join(core.LocalDir, "cmd", CLI_NAME)
-
-	core.ConfigFileName = fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
+	core.GlobalConfigFileName = fmt.Sprintf("%s.%s", CLI_CONFIG_FILE_NAME, CLI_CONFIG_FILE_TYPE)
+	core.GlobalConfigFilePath = filepath.Join(core.CacheDir, "config")
 
 	if err = core.loadGlobalConfig(); err != nil {
-		return nil, err
-	}
-
-	if err = core.loadLocalConfig(); err != nil {
 		return nil, err
 	}
 
@@ -53,14 +46,14 @@ func New() (*CoreEntity, error) {
 
 func (core *CoreEntity) loadGlobalConfig() error {
 	core.gv = viper.New()
-	core.gv.SetConfigName("cli")
-	core.gv.SetConfigType("yaml")
-	core.gv.AddConfigPath(core.GlobalConfigPath)
+	core.gv.SetConfigName(CLI_CONFIG_FILE_NAME)
+	core.gv.SetConfigType(CLI_CONFIG_FILE_TYPE)
+	core.gv.AddConfigPath(core.GlobalConfigFilePath)
 
-	_, err := os.Stat(filepath.Join(core.GlobalConfigPath, core.ConfigFileName))
+	_, err := os.Stat(filepath.Join(core.GlobalConfigFilePath, core.GlobalConfigFileName))
 	if err != nil {
 		if os.IsNotExist(err) {
-			if err = os.MkdirAll(core.GlobalConfigPath, 0755); err != nil {
+			if err = os.MkdirAll(core.GlobalConfigFilePath, 0755); err != nil {
 				return err
 			}
 
@@ -91,39 +84,7 @@ func (core *CoreEntity) loadGlobalConfig() error {
 func (core *CoreEntity) UpdateGlobalConfig() error {
 	core.gv.Set("version", core.Global.Version)
 
-	if err := core.gv.WriteConfigAs(filepath.Join(core.GlobalConfigPath, core.ConfigFileName)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (core *CoreEntity) loadLocalConfig() error {
-	_, err := os.Stat(filepath.Join(core.LocalConfigPath, core.ConfigFileName))
-	if err != nil {
-		core.Local = nil
-	} else {
-		core.lv = viper.New()
-		core.lv.SetConfigName("cli")
-		core.lv.SetConfigType("yaml")
-		core.lv.AddConfigPath(core.LocalConfigPath)
-
-		if err = core.lv.ReadInConfig(); err != nil {
-			return err
-		}
-
-		if err = core.lv.Unmarshal(&core.Local); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (core *CoreEntity) UpdateLocalConfig() error {
-	core.lv.Set("language", core.Local.Language)
-	core.lv.Set("version", core.Local.Version)
-
-	if err := core.lv.WriteConfigAs(filepath.Join(core.LocalConfigPath, core.ConfigFileName)); err != nil {
+	if err := core.gv.WriteConfigAs(filepath.Join(core.GlobalConfigFilePath, core.GlobalConfigFileName)); err != nil {
 		return err
 	}
 
