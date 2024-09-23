@@ -1,17 +1,23 @@
 package repo
 
 import (
+	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"github.com/fireflycore/cli/pkg/config"
 	"github.com/fireflycore/cli/pkg/file"
 	"github.com/fireflycore/cli/pkg/store"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
+
+//go:embed README.md
+var README []byte
 
 type ConfigEntity struct {
 	Language string `json:"language"`
@@ -149,7 +155,46 @@ func (core *CoreEntity) InitProject() {
 	case "go":
 		_ = file.WalkDirAndReplace(core.Language, core.currentProjectTempDir, core.GetTemplate(), core.Project)
 		_ = file.ReplaceInFile(filepath.Join(core.currentProjectTempDir, "run.sh"), `"project_name"`, fmt.Sprintf(`"%s"`, core.Project))
+		_ = core.WriteReadme()
 		_ = file.CopyDir(core.currentProjectTempDir, filepath.Join(store.Use.Config.LocalDir, core.Project))
 		_ = os.RemoveAll(core.currentProjectTempDir)
 	}
+}
+
+// WriteReadme 写入README.md
+func (core *CoreEntity) WriteReadme() error {
+	// 模板文件路径
+	tmpl, err := template.New("README").Parse(string(README))
+	if err != nil {
+		return err
+	}
+
+	// 准备数据
+	data := ReadmeEntity{
+		Project:  core.Project,
+		Language: core.Language,
+		Version:  core.Version,
+	}
+
+	// 创建一个缓冲区来存放生成的模板内容
+	var buf bytes.Buffer
+
+	// 执行模板，并将结果写入缓冲区
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return err
+	}
+
+	// 将缓冲区的内容写入文件
+	outputFile, err := os.Create(filepath.Join(core.currentProjectTempDir, "README.md"))
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	_, err = buf.WriteTo(outputFile)
+	if err != nil {
+		return err
+	}
+	return nil
 }
