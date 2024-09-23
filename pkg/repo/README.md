@@ -1,9 +1,5 @@
 # {{.Project}} service
 
-## Kernel
-- {{ .Language }}
-- {{ .Version }}
-
 ## Description
 
 
@@ -12,6 +8,9 @@
 
 ## Depend
 
+## Kernel
+- {{ .Language }}
+- {{ .Version }}
 
 ## Initial run command
 - `go mod tidy`
