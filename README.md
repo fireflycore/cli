@@ -2,6 +2,8 @@
 
 Firefly CLI 是 Firefly 工程侧开发辅助工具。它的定位很小：创建服务项目、维护本地项目元信息、推送已经构建好的 gateway descriptor。
 
+当前 CLI 版本：`v0.0.7`。
+
 代码结构已经收敛到 `internal` 包：
 
 ```text
@@ -115,7 +117,7 @@ firefly project info
 firefly project check
 ```
 
-`project check` 只检查本地文件和静态配置，例如 `.firefly/project.yaml`、`go.mod`、`Makefile`、`buf.yaml`、`buf.gen.yaml`、`conf/bootstrap.json`、`dist/descriptors/{version}.pb` 和 S3 配置。它不会连接 sidecar、gateway、authz、token 服务、配置中心或观测性系统。
+`project check` 只检查本地文件和静态配置，例如 `.firefly/project.yaml`、`go.mod`、`Makefile` / `makefile`、`buf.yaml`、`buf.gen.yaml`、`conf/bootstrap.json`、`dist/descriptors/{version}.pb` 和 S3 配置。它不会连接 sidecar、gateway、authz、token 服务、配置中心或观测性系统。
 
 ## 推送 Descriptor
 
