@@ -1,23 +1,27 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/fireflycore/cli/cmd"
-	"github.com/fireflycore/cli/pkg/config"
-	"github.com/fireflycore/cli/pkg/store"
+	"os"
+
+	"github.com/fireflycore/cli/internal/cli"
 )
 
 func main() {
-	// 初始化 CLI 全局配置，包括缓存目录、本地目录和全局版本配置。
-	cfg, err := config.New()
+	// 从当前进程环境构造 CLI 运行时上下文。
+	runtime, err := cli.NewRuntime()
 	if err != nil {
-		// 初始化失败时直接打印错误并退出，避免后续命令拿到空配置。
-		fmt.Println(err)
-		return
+		// 运行时初始化失败时写入 stderr 并返回非零状态。
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
-	// 将配置放入全局 store，供各个命令和业务包读取。
-	store.Use.Config = cfg
-	// 进入 Cobra 根命令执行流程。
-	cmd.Execute()
+	// 执行 Cobra 命令树。
+	if err = cli.Execute(context.Background(), runtime, nil); err != nil {
+		// Cobra 已经负责打印使用说明，这里补充错误并返回非零状态。
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+		return
+	}
 }
