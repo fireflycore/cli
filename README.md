@@ -2,6 +2,16 @@
 
 Firefly CLI 是 Firefly 工程侧开发辅助工具。它的定位很小：创建服务项目、维护本地项目元信息、推送已经构建好的 gateway descriptor。
 
+代码结构已经收敛到 `internal` 包：
+
+```text
+internal/cli         命令树和命令输出
+internal/template    基于 github.com/fireflycore/go-layout 创建服务
+internal/project     .firefly/project.yaml、版本解析和本地检查
+internal/descriptor  descriptor push 和 S3 上传
+internal/fsutil      文件系统与文本替换工具
+```
+
 当前只保留这些命令：
 
 ```text
@@ -28,14 +38,24 @@ firefly create
 firefly create \
   --name app \
   --language go \
-  --template-version v0.3.5 \
+  --template-version v0.3.3 \
   --module github.com/fireflycore/app \
   --app-id app \
   --service app \
   --non-interactive
 ```
 
-`--version` 保留为兼容参数，语义等同于 `--template-version`。
+也可以把项目名作为位置参数：
+
+```bash
+firefly create app \
+  --module github.com/fireflycore/app \
+  --app-id app \
+  --service app \
+  --non-interactive
+```
+
+模板固定来自 `github.com/fireflycore/go-layout`。`--template-version` 为空或为 `latest` 时，CLI 会读取模板仓库 tag 并选择最新语义化版本。
 
 ## 项目元信息
 
