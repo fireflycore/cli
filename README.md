@@ -32,6 +32,12 @@ CLI 不接管 Buf 生成、descriptor 构建、sidecar、gateway、authz、token
 firefly create
 ```
 
+当前交互模式是轻量 stdin prompt：如果没有传项目名，CLI 只询问 `Project name`。更推荐日常直接传位置参数：
+
+```bash
+firefly create cms
+```
+
 非交互式创建：
 
 ```bash
@@ -56,6 +62,23 @@ firefly create app \
 ```
 
 模板固定来自 `github.com/fireflycore/go-layout`。`--template-version` 为空或为 `latest` 时，CLI 会读取模板仓库 tag 并选择最新语义化版本。
+
+### TUI 后续扩展
+
+当前不引入 Charmbracelet/Bubble Tea TUI，原因是 `create` 仍以脚本化、Makefile、CI 友好为主，参数数量也还不需要完整表单。
+
+后续如果 `create` 需要同时编辑模板版本、module、app id、service、namespace、descriptor/S3 预设等更多字段，可以新增独立展示层：
+
+```text
+internal/prompt
+```
+
+约束：
+
+- TUI 只负责收集和确认输入，不负责拉取模板、替换文件或写项目配置。
+- TUI 输出统一转换为 `template.CreateOptions` 或 `project.InitOptions`。
+- 非交互式 flag 和位置参数必须继续可用，不能因为 TUI 影响脚本和 CI。
+- CLI 输出仍保持英文；代码注释保持中文。
 
 ## 项目元信息
 
