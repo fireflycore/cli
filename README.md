@@ -91,7 +91,7 @@ firefly project init \
   --service app \
   --app-id app \
   --module github.com/fireflycore/app \
-  --s3-endpoint https://minio.lhdht.cn \
+  --s3-endpoint https://minio.exmple.com \
   --s3-bucket descriptor \
   --s3-force-path-style
 ```
@@ -161,7 +161,7 @@ AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
 AWS_SESSION_TOKEN=...
 AWS_REGION=us-east-1
-FIREFLY_S3_ENDPOINT=https://minio.lhdht.cn
+FIREFLY_S3_ENDPOINT=https://minio.exmple.com
 FIREFLY_S3_BUCKET=descriptor
 FIREFLY_S3_FORCE_PATH_STYLE=true
 ```
