@@ -1,20 +1,21 @@
-# {{.Project}} service
+# {{.Project}} 服务
 
-## Description
-
-
-## Features
+## 项目说明
 
 
-## Depend
+## 核心能力
 
 
-## Kernel
+## 依赖信息
+
+
+## 基础信息
 - {{ .Language }}
 - {{ .Version }}
+- {{ .Module }}
 
 
-## Initial run command
+## 初始化运行
 - `go mod tidy`
 - `buf generate`
 - `go run main.go`
