@@ -16,13 +16,13 @@ var projectInitOpts project.InitOptions
 // projectCmd 是项目元信息命令组，只管理本地 .firefly/project.yaml。
 var projectCmd = &cobra.Command{
 	Use:   "project",
-	Short: "管理 Firefly 项目元信息",
+	Short: "Manage Firefly project metadata",
 }
 
 // projectInitCmd 负责在当前仓库创建 .firefly/project.yaml。
 var projectInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "创建 .firefly/project.yaml",
+	Short: "Create .firefly/project.yaml",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 获取当前工作目录，项目配置始终写入当前仓库。
 		root, err := os.Getwd()
@@ -54,7 +54,7 @@ var projectInitCmd = &cobra.Command{
 // projectInfoCmd 负责展示当前项目配置、服务版本和 Firefly 依赖版本。
 var projectInfoCmd = &cobra.Command{
 	Use:   "info",
-	Short: "展示 Firefly 项目元信息",
+	Short: "Show Firefly project metadata",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 获取当前仓库目录。
 		root, err := os.Getwd()
@@ -120,7 +120,7 @@ var projectInfoCmd = &cobra.Command{
 // projectCheckCmd 负责执行不依赖运行时组件的本地静态检查。
 var projectCheckCmd = &cobra.Command{
 	Use:   "check",
-	Short: "执行 Firefly 项目本地检查",
+	Short: "Run local Firefly project checks",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 获取当前仓库目录。
 		root, err := os.Getwd()
@@ -158,41 +158,41 @@ func init() {
 	projectCmd.AddCommand(projectCheckCmd)
 
 	// --service 指定服务名，默认使用当前目录名。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.ServiceName, "service", "", "服务名，默认使用当前目录名")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.ServiceName, "service", "", "service name, defaults to current directory name")
 	// --app-id 指定 Firefly 应用 ID，默认等于服务名。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.AppID, "app-id", "", "Firefly 应用 ID，默认等于服务名")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.AppID, "app-id", "", "Firefly app id, defaults to service name")
 	// --namespace 指定服务命名空间。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.Namespace, "namespace", project.DefaultNamespace, "服务命名空间")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.Namespace, "namespace", project.DefaultNamespace, "service namespace")
 	// --language 指定项目语言。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.Language, "language", project.DefaultLanguage, "项目语言")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.Language, "language", project.DefaultLanguage, "project language")
 	// --module 指定 Go module 名，默认读取 go.mod。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.Module, "module", "", "Go module 名，默认读取 go.mod")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.Module, "module", "", "Go module name, defaults to go.mod")
 	// --bootstrap-file 指定启动配置文件路径。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.BootstrapFile, "bootstrap-file", project.DefaultBootstrapFile, "启动配置文件路径")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.BootstrapFile, "bootstrap-file", project.DefaultBootstrapFile, "bootstrap config file path")
 	// --version-path 指定版本字段路径，默认 app.version。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.VersionPath, "version-path", project.DefaultBootstrapVersion, "启动配置中的版本字段路径")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.VersionPath, "version-path", project.DefaultBootstrapVersion, "version field path in bootstrap config")
 	// --descriptor-dir 指定 descriptor 本地目录。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.DescriptorDir, "descriptor-dir", project.DefaultDescriptorDir, "descriptor 输出目录")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.DescriptorDir, "descriptor-dir", project.DefaultDescriptorDir, "descriptor output directory")
 	// --file-template 指定 descriptor 文件名模板。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.FileTemplate, "file-template", project.DefaultFileTemplate, "descriptor 文件名模板")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.FileTemplate, "file-template", project.DefaultFileTemplate, "descriptor file name template")
 	// --object-key-template 指定 S3 对象 key 模板。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.ObjectKeyTemplate, "object-key-template", project.DefaultObjectKeyTemplate, "S3 对象 key 模板")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.ObjectKeyTemplate, "object-key-template", project.DefaultObjectKeyTemplate, "S3 object key template")
 	// --descriptor-ref-template 指定 descriptor_ref 模板。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.RefTemplate, "descriptor-ref-template", "", "descriptor_ref 模板")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.RefTemplate, "descriptor-ref-template", "", "descriptor_ref template")
 	// --descriptor-ref 指定固定 descriptor_ref。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.DescriptorRef, "descriptor-ref", "", "固定 descriptor_ref")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.DescriptorRef, "descriptor-ref", "", "fixed descriptor_ref")
 	// --content-type 指定上传对象的 content type。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.ContentType, "content-type", project.DefaultContentType, "descriptor 内容类型")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.ContentType, "content-type", project.DefaultContentType, "descriptor content type")
 	// --s3-profile 指定 AWS 共享配置 profile。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.S3Profile, "s3-profile", "", "AWS 共享配置 profile")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.S3Profile, "s3-profile", "", "AWS shared config profile")
 	// --s3-region 指定 S3 region。
 	projectInitCmd.Flags().StringVar(&projectInitOpts.S3Region, "s3-region", project.DefaultS3Region, "S3 region")
 	// --s3-endpoint 指定 S3 兼容 endpoint。
-	projectInitCmd.Flags().StringVar(&projectInitOpts.S3Endpoint, "s3-endpoint", "", "S3 兼容 endpoint")
+	projectInitCmd.Flags().StringVar(&projectInitOpts.S3Endpoint, "s3-endpoint", "", "S3-compatible endpoint")
 	// --s3-bucket 指定 S3 bucket，默认 descriptor。
 	projectInitCmd.Flags().StringVar(&projectInitOpts.S3Bucket, "s3-bucket", project.DefaultS3Bucket, "S3 bucket")
 	// --s3-force-path-style 指定是否使用路径风格访问，MinIO 常用。
-	projectInitCmd.Flags().BoolVar(&projectInitOpts.ForcePathStyle, "s3-force-path-style", false, "使用 S3 path-style 地址")
+	projectInitCmd.Flags().BoolVar(&projectInitOpts.ForcePathStyle, "s3-force-path-style", false, "use S3 path-style addressing")
 	// --overwrite 允许覆盖已有 .firefly/project.yaml。
-	projectInitCmd.Flags().BoolVar(&projectInitOpts.Overwrite, "overwrite", false, "覆盖已有项目配置")
+	projectInitCmd.Flags().BoolVar(&projectInitOpts.Overwrite, "overwrite", false, "overwrite existing project config")
 }

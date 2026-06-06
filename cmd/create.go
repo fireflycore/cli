@@ -32,7 +32,7 @@ var createNameReg = regexp.MustCompile("[^a-zA-Z0-9_-]+")
 // createCmd 负责从 go-layout 模板创建新的业务服务项目。
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "快速创建 Firefly 服务项目",
+	Short: "Create a Firefly service project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 根据 flag 判断走交互式表单还是非交互式参数。
 		cfg, err := resolveCreateConfig()
@@ -76,21 +76,21 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 
 	// --version 保留为历史兼容参数，语义等同于 --template-version。
-	createCmd.Flags().StringVar(&templateVersion, "version", "latest", "模板版本，默认使用 latest")
+	createCmd.Flags().StringVar(&templateVersion, "version", "latest", "template version, defaults to latest")
 	// --template-version 是新文档推荐使用的模板版本参数。
-	createCmd.Flags().StringVar(&templateVersion, "template-version", "latest", "模板版本，默认使用 latest")
+	createCmd.Flags().StringVar(&templateVersion, "template-version", "latest", "template version, defaults to latest")
 	// --name 指定生成的项目目录名。
-	createCmd.Flags().StringVar(&createProjectName, "name", "", "项目目录名")
+	createCmd.Flags().StringVar(&createProjectName, "name", "", "project directory name")
 	// --language 指定开发语言，目前主线仅支持 go。
-	createCmd.Flags().StringVar(&createLanguage, "language", "go", "开发语言")
+	createCmd.Flags().StringVar(&createLanguage, "language", "go", "development language")
 	// --module 指定 Go module 名，生成后会写入 go.mod 和 import path。
-	createCmd.Flags().StringVar(&createModule, "module", "", "Go module 名")
+	createCmd.Flags().StringVar(&createModule, "module", "", "Go module name")
 	// --app-id 指定 bootstrap.json 中的 app.id。
-	createCmd.Flags().StringVar(&createAppID, "app-id", "", "Firefly 应用 ID")
+	createCmd.Flags().StringVar(&createAppID, "app-id", "", "Firefly app id")
 	// --service 指定 bootstrap.json 中的 service.name。
-	createCmd.Flags().StringVar(&createServiceName, "service", "", "服务名")
+	createCmd.Flags().StringVar(&createServiceName, "service", "", "service name")
 	// --non-interactive 禁用交互式表单，适合脚本和 CI。
-	createCmd.Flags().BoolVar(&createNonInteractive, "non-interactive", false, "禁用交互式提示")
+	createCmd.Flags().BoolVar(&createNonInteractive, "non-interactive", false, "disable interactive prompts")
 }
 
 // resolveCreateConfig 根据当前 flag 决定返回交互式表单结果或非交互式配置。

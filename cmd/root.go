@@ -12,7 +12,7 @@ var templateVersion string
 // rootCmd 是 firefly CLI 的根命令，所有子命令都挂载在它下面。
 var rootCmd = &cobra.Command{
 	Use:     "firefly",
-	Short:   "Firefly：Go 微服务工程辅助工具。",
+	Short:   "Firefly Go microservice engineering helper.",
 	Version: config.RELEASE,
 }
 

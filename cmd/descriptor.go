@@ -15,13 +15,13 @@ var descriptorPushOpts descriptor.PushOptions
 // descriptorCmd 是 descriptor 命令组，当前只保留 push 能力。
 var descriptorCmd = &cobra.Command{
 	Use:   "descriptor",
-	Short: "发布 Firefly gateway descriptor",
+	Short: "Publish Firefly gateway descriptors",
 }
 
 // descriptorPushCmd 负责把已经由 Makefile 生成的 descriptor 上传到 S3 兼容存储。
 var descriptorPushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "推送已有 descriptor 文件到 S3 兼容存储",
+	Short: "Push an existing descriptor file to S3-compatible storage",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 获取当前仓库目录，descriptor push 必须在业务服务仓库内执行。
 		root, err := os.Getwd()
@@ -71,29 +71,29 @@ func init() {
 	descriptorCmd.AddCommand(descriptorPushCmd)
 
 	// --file 覆盖默认 descriptor 文件路径。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.File, "file", "", "descriptor 文件路径，默认按项目配置和服务版本推导")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.File, "file", "", "descriptor file path, defaults to project config and service version")
 	// --bucket 覆盖项目配置或 FIREFLY_S3_BUCKET 中的 bucket。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Bucket, "bucket", "", "S3 bucket，默认读取项目配置或 FIREFLY_S3_BUCKET")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Bucket, "bucket", "", "S3 bucket, defaults to project config or FIREFLY_S3_BUCKET")
 	// --key 覆盖默认对象 key。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Key, "key", "", "S3 对象 key，默认 {service}/{version}.pb")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Key, "key", "", "S3 object key, defaults to {service}/{version}.pb")
 	// --endpoint 覆盖项目配置或 FIREFLY_S3_ENDPOINT 中的 endpoint。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Endpoint, "endpoint", "", "S3 兼容 endpoint，默认读取项目配置或 FIREFLY_S3_ENDPOINT")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Endpoint, "endpoint", "", "S3-compatible endpoint, defaults to project config or FIREFLY_S3_ENDPOINT")
 	// --region 覆盖 AWS_REGION 或项目配置中的 region。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Region, "region", "", "S3 region，默认读取 AWS_REGION 或项目配置")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Region, "region", "", "S3 region, defaults to AWS_REGION or project config")
 	// --profile 指定 AWS 共享配置 profile。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Profile, "profile", "", "AWS 共享配置 profile")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.Profile, "profile", "", "AWS shared config profile")
 	// --force-path-style 强制使用路径风格地址，MinIO 常用。
-	descriptorPushCmd.Flags().BoolVar(&descriptorPushOpts.ForcePathStyle, "force-path-style", false, "使用 S3 path-style 地址")
+	descriptorPushCmd.Flags().BoolVar(&descriptorPushOpts.ForcePathStyle, "force-path-style", false, "use S3 path-style addressing")
 	// --content-type 覆盖上传对象的 content type。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.ContentType, "content-type", "", "descriptor 内容类型")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.ContentType, "content-type", "", "descriptor content type")
 	// --descriptor-ref 覆盖最终打印的 descriptor_ref。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.DescriptorRef, "descriptor-ref", "", "需要打印的 descriptor_ref URL")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.DescriptorRef, "descriptor-ref", "", "descriptor_ref URL to print")
 	// --access-key-id 显式指定访问密钥 ID。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.AccessKeyID, "access-key-id", "", "S3 访问密钥 ID")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.AccessKeyID, "access-key-id", "", "S3 access key id")
 	// --secret-access-key 显式指定访问密钥 secret。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.SecretAccessKey, "secret-access-key", "", "S3 访问密钥 secret")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.SecretAccessKey, "secret-access-key", "", "S3 secret access key")
 	// --session-token 显式指定 STS 临时凭证 token。
-	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.SessionToken, "session-token", "", "STS 临时凭证 token")
+	descriptorPushCmd.Flags().StringVar(&descriptorPushOpts.SessionToken, "session-token", "", "STS temporary credential session token")
 	// --dry-run 只解析路径和计算摘要，不上传对象。
-	descriptorPushCmd.Flags().BoolVar(&descriptorPushOpts.DryRun, "dry-run", false, "只解析并计算 descriptor 摘要，不执行上传")
+	descriptorPushCmd.Flags().BoolVar(&descriptorPushOpts.DryRun, "dry-run", false, "resolve and hash the descriptor without uploading")
 }

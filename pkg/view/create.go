@@ -167,7 +167,7 @@ func NewCreate() (*CreateFormEntity, error) {
 
 	// 用户中途退出或未完成必要字段时返回错误。
 	if form.Project == "" || form.Language == "" {
-		return nil, errors.New(DangerColor.Render("缺少必要参数"))
+		return nil, errors.New(DangerColor.Render("missing required params"))
 	}
 
 	// 返回完整的创建表单结果。
