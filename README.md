@@ -7,6 +7,7 @@ Firefly CLI 是 Firefly 工程侧开发辅助工具。它的定位很小：创�
 代码结构已经收敛到 `internal` 包：
 
 ```text
+cmd/firefly         firefly 二进制入口
 internal/cli         命令树和命令输出
 internal/template    基于 github.com/fireflycore/go-layout 创建服务
 internal/project     .firefly/project.yaml、版本解析和本地检查
@@ -91,7 +92,7 @@ firefly project init \
   --service app \
   --app-id app \
   --module github.com/fireflycore/app \
-  --s3-endpoint https://minio.exmple.com \
+  --s3-endpoint https://minio.example.com \
   --s3-bucket descriptor \
   --s3-force-path-style
 ```
@@ -161,7 +162,7 @@ AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
 AWS_SESSION_TOKEN=...
 AWS_REGION=us-east-1
-FIREFLY_S3_ENDPOINT=https://minio.exmple.com
+FIREFLY_S3_ENDPOINT=https://minio.example.com
 FIREFLY_S3_BUCKET=descriptor
 FIREFLY_S3_FORCE_PATH_STYLE=true
 ```
@@ -203,6 +204,14 @@ descriptor-push:
 
 ## 构建 CLI
 
+Go 的二进制名来自 main package 路径最后一段，所以入口放在 `cmd/firefly`。构建时需要显式构建这个入口：
+
 ```bash
-go build -ldflags "-s -w"
+go build -o firefly -ldflags "-s -w" ./cmd/firefly
+```
+
+安装时也需要使用 `cmd/firefly` 路径，否则根路径 `github.com/fireflycore/cli` 不会生成名为 `firefly` 的二进制：
+
+```bash
+go install github.com/fireflycore/cli/cmd/firefly@v0.0.9
 ```
