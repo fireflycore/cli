@@ -2,7 +2,7 @@
 
 Firefly CLI 是 Firefly 工程侧开发辅助工具。它的定位很小：创建服务项目、维护本地项目元信息、推送已经构建好的 gateway descriptor。
 
-当前 CLI 版本：`v0.0.7`。
+当前 CLI 版本：`v0.0.9`。
 
 代码结构已经收敛到 `internal` 包：
 
