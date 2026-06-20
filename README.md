@@ -224,5 +224,5 @@ go build -o firefly -ldflags "-s -w" ./cmd/firefly
 安装时也需要使用 `cmd/firefly` 路径，否则根路径 `github.com/fireflycore/cli` 不会生成名为 `firefly` 的二进制：
 
 ```bash
-go install github.com/fireflycore/cli/cmd/firefly@v0.1.1
+go install github.com/fireflycore/cli/cmd/firefly@v0.1.2
 ```
