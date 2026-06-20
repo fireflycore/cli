@@ -101,7 +101,7 @@ firefly project init \
 
 ```text
 version = conf/bootstrap.json 中的 app.version，也就是 bootstrapConf.app.version
-file    = dist/descriptors/{version}.pb
+file    = dep/protobuf/gen/{version}.pb
 bucket  = descriptor
 key     = {service}/{version}.pb
 ```
@@ -118,7 +118,7 @@ firefly project info
 firefly project check
 ```
 
-`project check` 只检查本地文件和静态配置，例如 `.firefly/project.yaml`、`go.mod`、`Makefile` / `makefile`、`buf.yaml`、`buf.gen.yaml`、`conf/bootstrap.json`、`dist/descriptors/{version}.pb` 和 S3 配置。它不会连接 sidecar、gateway、authz、token 服务、配置中心或观测性系统。
+`project check` 只检查本地文件和静态配置，例如 `.firefly/project.yaml`、`go.mod`、`Makefile` / `makefile`、`buf.yaml`、`buf.gen.yaml`、`conf/bootstrap.json`、`dep/protobuf/gen/{version}.pb` 和 S3 配置。它不会连接 sidecar、gateway、authz、token 服务、配置中心或观测性系统。
 
 ## 推送 Descriptor
 
@@ -135,7 +135,7 @@ firefly descriptor push
 firefly descriptor push --dry-run
 ```
 
-`descriptor push` 会读取 `.firefly/project.yaml`，再从 `conf/bootstrap.json` 读取服务版本 `app.version`，解析本地文件 `dist/descriptors/{version}.pb`，并通过 S3 PutObject 上传到：
+`descriptor push` 会读取 `.firefly/project.yaml`，再从 `conf/bootstrap.json` 读取服务版本 `app.version`，解析本地文件 `dep/protobuf/gen/{version}.pb`，并通过 S3 PutObject 上传到：
 
 ```text
 bucket = descriptor
@@ -180,12 +180,23 @@ proto:
 	buf generate
 
 descriptor:
-	mkdir -p dist/descriptors
 	VERSION=$$(jq -r '.app.version' conf/bootstrap.json); \
-	buf build buf.build/lhdht/grpc:main \
+	TYPE_FLAGS=$$(awk ' \
+		function add(value) { if (value != "" && !(value in seen)) { seen[value]=1; selected[++selected_count]=value } } \
+		/^[[:space:]]*- include_package=/ { split($$0, item, "="); add(item[2]); next } \
+		/^[[:space:]]*- include_service=/ { split($$0, item, "="); add(item[2]); next } \
+		/^[[:space:]]*- include_package_prefix=/ { split($$0, item, "="); prefixes[++prefix_count]=item[2]; next } \
+		/^[[:space:]]*types:/ { in_types=1; next } \
+		in_types && /^[[:space:]]*- [A-Za-z0-9_.]+$$/ { type=$$0; gsub(/^[[:space:]]*- /, "", type); for (i=1; i<=prefix_count; i++) { if (index(type, prefixes[i]) == 1) add(type) } } \
+		END { for (i=1; i<=selected_count; i++) printf "--type %s ", selected[i] } \
+	' buf.gen.yaml); \
+	test -n "$$VERSION" && test "$$VERSION" != "null"; \
+	test -n "$$TYPE_FLAGS"; \
+	mkdir -p dep/protobuf/gen; \
+	buf build buf.build/lhdht/grpc:main $$TYPE_FLAGS \
 	  --as-file-descriptor-set \
 	  --exclude-source-info \
-	  -o dist/descriptors/$$VERSION.pb
+	  -o dep/protobuf/gen/$$VERSION.pb
 
 descriptor-push:
 	firefly descriptor push
