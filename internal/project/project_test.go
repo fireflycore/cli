@@ -41,7 +41,7 @@ func TestConfigResolveUsesBootstrapVersion(t *testing.T) {
 	}
 
 	// descriptor 文件名必须使用版本号，而不是服务名。
-	wantFile := filepath.Join(root, "dist", "descriptors", "v1.2.3.pb")
+	wantFile := filepath.Join(root, "dep", "protobuf", "gen", "v1.2.3.pb")
 	if resolved.DescriptorFile != wantFile {
 		t.Fatalf("descriptor file mismatch: %s", resolved.DescriptorFile)
 	}
@@ -60,7 +60,7 @@ func TestCheckAcceptsLowercaseMakefile(t *testing.T) {
 	writeFile(t, root, "makefile", "descriptor:\n\tbuf build\n")
 	writeFile(t, root, "buf.gen.yaml", "version: v2\n")
 	writeFile(t, root, "conf/bootstrap.json", `{"app":{"version":"v0.0.1"}}`)
-	writeFile(t, root, "dist/descriptors/v0.0.1.pb", "descriptor")
+	writeFile(t, root, "dep/protobuf/gen/v0.0.1.pb", "descriptor")
 
 	cfg, err := NewConfig(InitOptions{
 		Root:        root,

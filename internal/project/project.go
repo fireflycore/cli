@@ -30,7 +30,7 @@ const (
 	// DefaultBootstrapVersionPath 是默认版本字段路径，对应 bootstrapConf.app.version。
 	DefaultBootstrapVersionPath = "app.version"
 	// DefaultDescriptorDir 是 descriptor 默认输出目录。
-	DefaultDescriptorDir = "dist/descriptors"
+	DefaultDescriptorDir = "dep/protobuf/gen"
 	// DefaultDescriptorFileTemplate 是本地 descriptor 文件名模板。
 	DefaultDescriptorFileTemplate = "${version}.pb"
 	// DefaultObjectKeyTemplate 是 S3 对象 key 模板。
