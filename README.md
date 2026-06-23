@@ -106,6 +106,10 @@ bucket  = descriptor
 key     = {service}/{version}.pb
 ```
 
+`.firefly/project.yaml` 只保存 CLI 本地元信息。`descriptor_ref_template` 用于 `firefly project info` 和 `firefly descriptor push` 推导、展示最终 `descriptor_ref`；它不会被 api-gateway、sidecar-agent 或 go-consul/agent 读取，也不会自动写入 `buf.gen.yaml` 或 `gateway.manifest.json`。
+
+运行链路中的 descriptor 引用事实源仍是 `buf.gen.yaml` 传给 `protoc-gen-gateway-manifest` 的 `descriptor_ref` 参数。`buf generate` 生成的 `gateway.manifest.json` 会携带该值，业务服务注册后再进入 Consul route document，最终由 api-gateway 消费。
+
 查看项目元信息：
 
 ```bash
@@ -152,6 +156,8 @@ bucket
 key
 descriptor_ref
 ```
+
+这里输出的 `descriptor_ref` 是 CLI 根据 `.firefly/project.yaml` 推导出的发布引用，用于人工核对或发布脚本消费。CLI 不会因为 push 成功而修改 `buf.gen.yaml` 或重新生成 `gateway.manifest.json`；如果业务服务需要让 api-gateway 使用新的引用，仍需要由构建配置中的 `descriptor_ref` 进入 manifest-first 注册链路。
 
 ## S3 凭证
 
