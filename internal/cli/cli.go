@@ -201,20 +201,29 @@ func newProjectInitCommand(runtime Runtime) *cobra.Command {
 			return nil
 		},
 	}
-	// 声明 project init 参数。
+	cmd.Flags().StringVar(&opts.ProjectType, "type", project.ProjectTypeService, "project type: service or proto")
 	cmd.Flags().StringVar(&opts.ServiceName, "service", "", "service name, defaults to current directory name")
 	cmd.Flags().StringVar(&opts.AppID, "app-id", "", "Firefly app id, defaults to service name")
-	cmd.Flags().StringVar(&opts.Namespace, "namespace", project.DefaultNamespace, "service namespace")
+	cmd.Flags().StringVar(&opts.Namespace, "namespace", project.DefaultNamespace, "namespace")
 	cmd.Flags().StringVar(&opts.Language, "language", project.DefaultLanguage, "project language")
 	cmd.Flags().StringVar(&opts.Module, "module", "", "Go module name, defaults to go.mod")
+	cmd.Flags().StringVar(&opts.ProtoNamespace, "proto-namespace", "", "proto project namespace, defaults to --namespace")
+	cmd.Flags().StringVar(&opts.ProtoRepo, "proto-repo", "", "proto repository identifier")
+	cmd.Flags().StringVar(&opts.ProtoModule, "proto-module", "", "Buf module name or local module identifier")
+	cmd.Flags().StringVar(&opts.ProtoSource, "proto-source", project.DefaultProtoSource, "Buf build source for proto projects")
+	cmd.Flags().StringVar(&opts.ProtoVersion, "proto-version", project.DefaultProtoVersion, "proto descriptor version")
 	cmd.Flags().StringVar(&opts.BootstrapFile, "bootstrap-file", project.DefaultBootstrapFile, "bootstrap config file path")
 	cmd.Flags().StringVar(&opts.VersionPath, "version-path", project.DefaultBootstrapVersionPath, "version field path in bootstrap config")
 	cmd.Flags().StringVar(&opts.DescriptorDir, "descriptor-dir", project.DefaultDescriptorDir, "descriptor output directory")
-	cmd.Flags().StringVar(&opts.FileTemplate, "file-template", project.DefaultDescriptorFileTemplate, "descriptor file name template")
-	cmd.Flags().StringVar(&opts.ObjectKeyTemplate, "object-key-template", project.DefaultObjectKeyTemplate, "S3 object key template")
+	cmd.Flags().StringVar(&opts.FileTemplate, "file-template", "", "descriptor file name template")
+	cmd.Flags().StringVar(&opts.CurrentFileTemplate, "current-file-template", "", "current descriptor file name template")
+	cmd.Flags().StringVar(&opts.ObjectKeyTemplate, "object-key-template", "", "S3 object key template")
+	cmd.Flags().StringVar(&opts.CurrentObjectKeyTemplate, "current-object-key-template", "", "current S3 object key template")
 	cmd.Flags().StringVar(&opts.RefTemplate, "descriptor-ref-template", "", "descriptor_ref template")
 	cmd.Flags().StringVar(&opts.DescriptorRef, "descriptor-ref", "", "fixed descriptor_ref")
 	cmd.Flags().StringVar(&opts.ContentType, "content-type", project.DefaultDescriptorContentType, "descriptor content type")
+	cmd.Flags().StringVar(&opts.ConsulAddress, "consul-address", "", "Consul HTTP API address")
+	cmd.Flags().StringVar(&opts.DescriptorCurrentKey, "descriptor-current-key", "", "descriptor current Consul KV key")
 	cmd.Flags().StringVar(&opts.S3Profile, "s3-profile", "", "AWS shared config profile")
 	cmd.Flags().StringVar(&opts.S3Region, "s3-region", project.DefaultS3Region, "S3 region")
 	cmd.Flags().StringVar(&opts.S3Endpoint, "s3-endpoint", "", "S3-compatible endpoint")
@@ -240,20 +249,41 @@ func newProjectInfoCommand(runtime Runtime) *cobra.Command {
 			// 输出基础元信息。
 			out := cmd.OutOrStdout()
 			fmt.Fprintf(out, "config: %s\n", path)
-			fmt.Fprintf(out, "service: %s\n", cfg.Service.Name)
-			fmt.Fprintf(out, "app_id: %s\n", cfg.Service.AppID)
-			fmt.Fprintf(out, "namespace: %s\n", cfg.Service.Namespace)
-			fmt.Fprintf(out, "language: %s\n", cfg.Service.Language)
-			fmt.Fprintf(out, "module: %s\n", cfg.Service.Module)
+			fmt.Fprintf(out, "project.type: %s\n", cfg.Project.Type)
+			if cfg.IsProtoProject() {
+				fmt.Fprintf(out, "namespace: %s\n", cfg.Proto.Namespace)
+				if cfg.Proto.Repo != "" {
+					fmt.Fprintf(out, "proto.repo: %s\n", cfg.Proto.Repo)
+				}
+				if cfg.Proto.Module != "" {
+					fmt.Fprintf(out, "proto.module: %s\n", cfg.Proto.Module)
+				}
+				fmt.Fprintf(out, "proto.source: %s\n", cfg.Proto.Source)
+			} else {
+				fmt.Fprintf(out, "service: %s\n", cfg.Service.Name)
+				fmt.Fprintf(out, "app_id: %s\n", cfg.Service.AppID)
+				fmt.Fprintf(out, "namespace: %s\n", cfg.Service.Namespace)
+				fmt.Fprintf(out, "language: %s\n", cfg.Service.Language)
+				fmt.Fprintf(out, "module: %s\n", cfg.Service.Module)
+			}
 			if resolveErr != nil {
 				fmt.Fprintf(out, "version_error: %s\n", resolveErr)
 			} else {
 				fmt.Fprintf(out, "version: %s\n", resolved.Version)
 				fmt.Fprintf(out, "descriptor.file: %s\n", resolved.DescriptorFile)
 				fmt.Fprintf(out, "descriptor.object_key: %s\n", resolved.ObjectKey)
-				fmt.Fprintf(out, "descriptor_ref: %s\n", resolved.DescriptorRef)
+				if resolved.DescriptorRef != "" {
+					fmt.Fprintf(out, "descriptor_ref: %s\n", resolved.DescriptorRef)
+				}
+				if cfg.IsProtoProject() {
+					fmt.Fprintf(out, "descriptor.current_file: %s\n", resolved.CurrentDescriptorFile)
+					fmt.Fprintf(out, "descriptor.current_object_key: %s\n", resolved.CurrentObjectKey)
+					if resolved.CurrentDescriptorRef != "" {
+						fmt.Fprintf(out, "descriptor.current_ref: %s\n", resolved.CurrentDescriptorRef)
+					}
+					fmt.Fprintf(out, "descriptor.current_key: %s\n", resolved.DescriptorCurrentKey)
+				}
 			}
-			// 输出 Firefly 依赖版本。
 			writeDependencies(out, project.ReadFireflyModules(runtime.WorkDir))
 			return nil
 		},
@@ -285,70 +315,166 @@ func newProjectCheckCommand(runtime Runtime) *cobra.Command {
 
 // newDescriptorCommand 创建 descriptor 命令组。
 func newDescriptorCommand(runtime Runtime) *cobra.Command {
-	// descriptor 当前只保留 push。
 	cmd := &cobra.Command{
 		Use:   "descriptor",
 		Short: "Publish Firefly gateway descriptors",
 	}
+	cmd.AddCommand(newDescriptorBuildCommand(runtime))
 	cmd.AddCommand(newDescriptorPushCommand(runtime))
+	cmd.AddCommand(newDescriptorPublishCommand(runtime))
+	return cmd
+}
+
+// newDescriptorBuildCommand 创建 descriptor build 命令。
+func newDescriptorBuildCommand(runtime Runtime) *cobra.Command {
+	opts := descriptor.BuildOptions{}
+	cmd := &cobra.Command{
+		Use:   "build",
+		Short: "Build a proto project descriptor with Buf",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.Root = runtime.WorkDir
+			result, err := descriptor.Build(cmd.Context(), opts)
+			if err != nil {
+				return err
+			}
+			out := cmd.OutOrStdout()
+			fmt.Fprintf(out, "namespace: %s\n", result.Namespace)
+			fmt.Fprintf(out, "version: %s\n", result.Version)
+			fmt.Fprintf(out, "source: %s\n", result.Source)
+			fmt.Fprintf(out, "file: %s\n", result.File)
+			fmt.Fprintf(out, "current_file: %s\n", result.CurrentFile)
+			fmt.Fprintf(out, "size: %d\n", result.Size)
+			fmt.Fprintf(out, "sha256: %s\n", result.SHA256)
+			fmt.Fprintln(out, "built: true")
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&opts.Version, "version", "", "descriptor version, defaults to proto.version")
+	cmd.Flags().StringVar(&opts.Source, "source", "", "Buf build source, defaults to proto.source")
+	cmd.Flags().StringVar(&opts.Out, "out", "", "versioned descriptor output file")
+	cmd.Flags().StringVar(&opts.Buf, "buf", "buf", "Buf CLI path")
 	return cmd
 }
 
 // newDescriptorPushCommand 创建 descriptor push 命令。
 func newDescriptorPushCommand(runtime Runtime) *cobra.Command {
-	// opts 保存本次 push 的参数。
 	opts := descriptor.PushOptions{}
 	cmd := &cobra.Command{
 		Use:   "push",
 		Short: "Push an existing descriptor file to S3-compatible storage",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// descriptor push 必须在业务服务仓库内执行。
 			opts.Root = runtime.WorkDir
 			result, err := descriptor.Push(cmd.Context(), opts)
 			if err != nil {
 				return err
 			}
-			// 输出上传结果。
-			out := cmd.OutOrStdout()
-			if result.DryRun {
-				fmt.Fprintln(out, "dry_run: true")
-			}
-			fmt.Fprintf(out, "file: %s\n", result.File)
-			fmt.Fprintf(out, "size: %d\n", result.Size)
-			fmt.Fprintf(out, "sha256: %s\n", result.SHA256)
-			fmt.Fprintf(out, "bucket: %s\n", result.Bucket)
-			fmt.Fprintf(out, "key: %s\n", result.Key)
-			if result.DescriptorRef != "" {
-				fmt.Fprintf(out, "descriptor_ref: %s\n", result.DescriptorRef)
-			}
+			writePushResult(cmd.OutOrStdout(), result)
 			if !result.DryRun {
-				fmt.Fprintln(out, "pushed: true")
+				fmt.Fprintln(cmd.OutOrStdout(), "pushed: true")
 			}
 			return nil
 		},
 	}
-	// 声明 descriptor push 参数。
-	cmd.Flags().StringVar(&opts.File, "file", "", "descriptor file path, defaults to project config and service version")
+	addPushFlags(cmd, &opts)
+	return cmd
+}
+
+// newDescriptorPublishCommand 创建 descriptor publish 命令。
+func newDescriptorPublishCommand(runtime Runtime) *cobra.Command {
+	opts := descriptor.PublishOptions{}
+	cmd := &cobra.Command{
+		Use:   "publish",
+		Short: "Build, push, and publish a proto project descriptor current key",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.Root = runtime.WorkDir
+			result, err := descriptor.Publish(cmd.Context(), opts)
+			if err != nil {
+				return err
+			}
+			out := cmd.OutOrStdout()
+			if result.Build != nil {
+				fmt.Fprintln(out, "built: true")
+			}
+			writePushResult(out, result.Push)
+			fmt.Fprintf(out, "descriptor.current_key: %s\n", result.CurrentKey)
+			if result.ConsulAddress != "" {
+				fmt.Fprintf(out, "consul.address: %s\n", result.ConsulAddress)
+			}
+			if result.DryRun {
+				fmt.Fprintln(out, "dry_run: true")
+			} else if !opts.SkipConsul {
+				fmt.Fprintln(out, "published: true")
+			}
+			return nil
+		},
+	}
+	addPushFlags(cmd, &opts.PushOptions)
+	cmd.Flags().StringVar(&opts.Source, "source", "", "Buf build source, defaults to proto.source")
+	cmd.Flags().StringVar(&opts.Out, "out", "", "versioned descriptor output file")
+	cmd.Flags().StringVar(&opts.Buf, "buf", "buf", "Buf CLI path")
+	cmd.Flags().BoolVar(&opts.SkipBuild, "skip-build", false, "use existing local descriptor file")
+	cmd.Flags().BoolVar(&opts.SkipConsul, "skip-consul", false, "skip Consul descriptor current KV update")
+	cmd.Flags().StringVar(&opts.ConsulAddress, "consul-address", "", "Consul HTTP API address")
+	cmd.Flags().StringVar(&opts.SourceRevision, "source-revision", "", "descriptor source revision")
+	return cmd
+}
+
+func addPushFlags(cmd *cobra.Command, opts *descriptor.PushOptions) {
+	cmd.Flags().StringVar(&opts.Version, "version", "", "descriptor version, defaults to project config")
+	cmd.Flags().StringVar(&opts.File, "file", "", "descriptor file path, defaults to project config and version")
+	cmd.Flags().StringVar(&opts.CurrentFile, "current-file", "", "current descriptor file path")
 	cmd.Flags().StringVar(&opts.Bucket, "bucket", "", "S3 bucket, defaults to project config or FIREFLY_S3_BUCKET")
-	cmd.Flags().StringVar(&opts.Key, "key", "", "S3 object key, defaults to {service}/{version}.pb")
+	cmd.Flags().StringVar(&opts.Key, "key", "", "S3 object key, defaults to project config")
+	cmd.Flags().StringVar(&opts.CurrentKey, "current-key", "", "current S3 object key")
 	cmd.Flags().StringVar(&opts.Endpoint, "endpoint", "", "S3-compatible endpoint, defaults to project config or FIREFLY_S3_ENDPOINT")
 	cmd.Flags().StringVar(&opts.Region, "region", "", "S3 region, defaults to AWS_REGION or project config")
 	cmd.Flags().StringVar(&opts.Profile, "profile", "", "AWS shared config profile")
 	cmd.Flags().BoolVar(&opts.ForcePathStyle, "force-path-style", false, "use S3 path-style addressing")
 	cmd.Flags().StringVar(&opts.ContentType, "content-type", "", "descriptor content type")
 	cmd.Flags().StringVar(&opts.DescriptorRef, "descriptor-ref", "", "descriptor_ref URL to print")
+	cmd.Flags().StringVar(&opts.CurrentDescriptorRef, "current-descriptor-ref", "", "current descriptor_ref URL to print")
 	cmd.Flags().StringVar(&opts.AccessKeyID, "access-key-id", "", "S3 access key id")
 	cmd.Flags().StringVar(&opts.SecretAccessKey, "secret-access-key", "", "S3 secret access key")
 	cmd.Flags().StringVar(&opts.SessionToken, "session-token", "", "STS temporary credential session token")
-	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "resolve and hash the descriptor without uploading")
-	return cmd
+	cmd.Flags().BoolVar(&opts.SkipCurrentObject, "skip-current-object", false, "do not upload current descriptor object")
+	cmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "resolve and hash the descriptor without writing remote state")
+}
+
+func writePushResult(out io.Writer, result *descriptor.PushResult) {
+	if result.DryRun {
+		fmt.Fprintln(out, "dry_run: true")
+	}
+	if result.ProjectType != "" {
+		fmt.Fprintf(out, "project.type: %s\n", result.ProjectType)
+	}
+	if result.Namespace != "" {
+		fmt.Fprintf(out, "namespace: %s\n", result.Namespace)
+	}
+	if result.Version != "" {
+		fmt.Fprintf(out, "version: %s\n", result.Version)
+	}
+	fmt.Fprintf(out, "file: %s\n", result.File)
+	if result.CurrentFile != "" && result.CurrentFile != result.File {
+		fmt.Fprintf(out, "current_file: %s\n", result.CurrentFile)
+	}
+	fmt.Fprintf(out, "size: %d\n", result.Size)
+	fmt.Fprintf(out, "sha256: %s\n", result.SHA256)
+	fmt.Fprintf(out, "bucket: %s\n", result.Bucket)
+	fmt.Fprintf(out, "key: %s\n", result.Key)
+	if result.CurrentKey != "" {
+		fmt.Fprintf(out, "current_key: %s\n", result.CurrentKey)
+	}
+	if result.DescriptorRef != "" {
+		fmt.Fprintf(out, "descriptor_ref: %s\n", result.DescriptorRef)
+	}
+	if result.CurrentDescriptorRef != "" {
+		fmt.Fprintf(out, "current_descriptor_ref: %s\n", result.CurrentDescriptorRef)
+	}
 }
 
 // prompt 读取一行交互式输入。
 func prompt(in io.Reader, out io.Writer, label string) (string, error) {
-	// 打印 prompt。
 	fmt.Fprintf(out, "%s: ", label)
-	// 读取用户输入。
 	reader := bufio.NewReader(in)
 	value, err := reader.ReadString('\n')
 	if err != nil && err != io.EOF {
@@ -359,11 +485,9 @@ func prompt(in io.Reader, out io.Writer, label string) (string, error) {
 
 // writeDependencies 按名称排序输出 Firefly 依赖版本。
 func writeDependencies(out io.Writer, deps map[string]string) {
-	// 没有依赖时不输出 dependencies 区块。
 	if len(deps) == 0 {
 		return
 	}
-	// 稳定排序便于脚本和人工比较。
 	keys := make([]string, 0, len(deps))
 	for key := range deps {
 		keys = append(keys, key)
