@@ -2,7 +2,7 @@
 
 Firefly CLI 是 Firefly 工程侧开发辅助工具。它负责创建服务项目、维护本地项目元信息，以及在 proto 仓库中生成、上传、发布 api-gateway descriptor。
 
-当前 CLI 版本：`v0.1.3`。
+当前 CLI 版本：`v0.1.4`。
 
 代码结构：
 
@@ -195,5 +195,5 @@ go build -o firefly -ldflags "-s -w" ./cmd/firefly
 安装：
 
 ```bash
-go install github.com/fireflycore/cli/cmd/firefly@v0.1.3
+go install github.com/fireflycore/cli/cmd/firefly@v0.1.4
 ```

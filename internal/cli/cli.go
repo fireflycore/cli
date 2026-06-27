@@ -20,7 +20,7 @@ const (
 	// AppName 是 CLI 在缓存目录中的名字。
 	AppName = "firefly"
 	// Version 是当前 CLI 版本。
-	Version = "v0.1.3"
+	Version = "v0.1.4"
 )
 
 // Runtime 保存命令执行时需要的外部上下文。
