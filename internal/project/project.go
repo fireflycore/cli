@@ -23,7 +23,7 @@ const (
 
 	// ProjectTypeService 表示业务服务项目。
 	ProjectTypeService = "service"
-	// ProjectTypeProto 表示 namespace proto 仓库项目。
+	// ProjectTypeProto 表示 proto 项目。
 	ProjectTypeProto = "proto"
 
 	// DefaultLanguage 是默认项目语言。
@@ -74,12 +74,12 @@ type Config struct {
 	Proto ProtoConfig `yaml:"proto,omitempty" json:"proto,omitempty"`
 	// Bootstrap 保存服务版本读取规则。
 	Bootstrap BootstrapConfig `yaml:"bootstrap,omitempty" json:"bootstrap,omitempty"`
-	// Descriptor 保存 descriptor 本地和远端路径规则。
-	Descriptor DescriptorConfig `yaml:"descriptor" json:"descriptor"`
+	// Descriptor 保存 proto 项目的 descriptor 本地和远端路径规则。
+	Descriptor DescriptorConfig `yaml:"descriptor,omitempty" json:"descriptor,omitempty"`
 	// Consul 保存 Consul KV 发布配置。
 	Consul ConsulConfig `yaml:"consul,omitempty" json:"consul,omitempty"`
-	// S3 保存 S3 兼容对象存储配置。
-	S3 S3Config `yaml:"s3" json:"s3"`
+	// S3 保存 proto 项目的 S3 兼容对象存储配置。
+	S3 S3Config `yaml:"s3,omitempty" json:"s3,omitempty"`
 }
 
 // ProjectConfig 保存项目类型。
@@ -102,11 +102,11 @@ type ServiceConfig struct {
 	Module string `yaml:"module" json:"module"`
 }
 
-// ProtoConfig 保存 proto 仓库维度的基础元信息。
+// ProtoConfig 保存 proto 项目维度的基础元信息。
 type ProtoConfig struct {
-	// Namespace 是 proto 仓库对应的 namespace。
+	// Namespace 是 proto 项目对应的 namespace。
 	Namespace string `yaml:"namespace" json:"namespace"`
-	// Repo 是 proto 仓库来源标识，例如 lhdht/backend/proto。
+	// Repo 是 proto 来源标识，例如 lhdht/backend/proto。
 	Repo string `yaml:"repo,omitempty" json:"repo,omitempty"`
 	// Module 是 Buf module 名或本地 module 标识。
 	Module string `yaml:"module,omitempty" json:"module,omitempty"`
@@ -136,12 +136,13 @@ type DescriptorConfig struct {
 	ObjectKeyTemplate string `yaml:"object_key_template" json:"object_key_template"`
 	// CurrentObjectKeyTemplate 是 S3 current object key 模板。
 	CurrentObjectKeyTemplate string `yaml:"current_object_key_template,omitempty" json:"current_object_key_template,omitempty"`
-	// RefTemplate 是 descriptor_ref URL 模板。
-	RefTemplate string `yaml:"descriptor_ref_template,omitempty" json:"descriptor_ref_template,omitempty"`
-	// Ref 是固定 descriptor_ref。
-	Ref string `yaml:"descriptor_ref,omitempty" json:"descriptor_ref,omitempty"`
 	// ContentType 是上传 descriptor 时使用的 content type。
 	ContentType string `yaml:"content_type" json:"content_type"`
+}
+
+// IsZero lets yaml omit descriptor for service projects.
+func (cfg DescriptorConfig) IsZero() bool {
+	return cfg == DescriptorConfig{}
 }
 
 // ConsulConfig 保存 descriptor current 发布配置。
@@ -166,6 +167,11 @@ type S3Config struct {
 	ForcePathStyle bool `yaml:"force_path_style" json:"force_path_style"`
 }
 
+// IsZero lets yaml omit s3 for service projects.
+func (cfg S3Config) IsZero() bool {
+	return cfg == S3Config{}
+}
+
 // InitOptions 是 project init 命令的输入参数。
 type InitOptions struct {
 	// Root 是项目根目录。
@@ -184,7 +190,7 @@ type InitOptions struct {
 	Module string
 	// ProtoNamespace 是 proto 项目的 namespace。
 	ProtoNamespace string
-	// ProtoRepo 是 proto 仓库来源标识。
+	// ProtoRepo 是 proto 来源标识。
 	ProtoRepo string
 	// ProtoModule 是 Buf module 名或本地 module 标识。
 	ProtoModule string
@@ -206,10 +212,6 @@ type InitOptions struct {
 	ObjectKeyTemplate string
 	// CurrentObjectKeyTemplate 是 current S3 object key 模板。
 	CurrentObjectKeyTemplate string
-	// DescriptorRef 是固定 descriptor_ref。
-	DescriptorRef string
-	// RefTemplate 是 descriptor_ref URL 模板。
-	RefTemplate string
 	// ContentType 是上传 content type。
 	ContentType string
 	// S3Profile 是 AWS shared config profile。
@@ -248,10 +250,10 @@ type Resolved struct {
 	ObjectKey string
 	// CurrentObjectKey 是 S3 current object key。
 	CurrentObjectKey string
-	// DescriptorRef 是 gateway 可读取的 descriptor URL。
-	DescriptorRef string
-	// CurrentDescriptorRef 是 current descriptor URL。
-	CurrentDescriptorRef string
+	// VersionedRef 是版本化 descriptor 对象引用。
+	VersionedRef string
+	// CurrentRef 是 current descriptor 对象引用。
+	CurrentRef string
 	// DescriptorCurrentKey 是 api-gateway watch 的 Consul KV key。
 	DescriptorCurrentKey string
 }
@@ -343,7 +345,7 @@ func NewConfig(opts InitOptions) (*Config, error) {
 		projectType = ProjectTypeService
 	}
 	if projectType != ProjectTypeService && projectType != ProjectTypeProto {
-		return nil, fmt.Errorf("unsupported project type %q", opts.ProjectType)
+		return nil, unsupportedProjectTypeError(opts.ProjectType)
 	}
 
 	module := strings.TrimSpace(opts.Module)
@@ -356,19 +358,6 @@ func NewConfig(opts InitOptions) (*Config, error) {
 	cfg := &Config{
 		Schema:  SchemaVersion,
 		Project: ProjectConfig{Type: projectType},
-		Descriptor: DescriptorConfig{
-			Dir:         firstNonEmpty(opts.DescriptorDir, DefaultDescriptorDir),
-			RefTemplate: strings.TrimSpace(opts.RefTemplate),
-			Ref:         strings.TrimSpace(opts.DescriptorRef),
-			ContentType: firstNonEmpty(opts.ContentType, DefaultDescriptorContentType),
-		},
-		S3: S3Config{
-			Profile:        strings.TrimSpace(opts.S3Profile),
-			Region:         firstNonEmpty(opts.S3Region, DefaultS3Region),
-			Endpoint:       strings.TrimSpace(opts.S3Endpoint),
-			Bucket:         firstNonEmpty(opts.S3Bucket, DefaultS3Bucket),
-			ForcePathStyle: opts.ForcePathStyle,
-		},
 	}
 
 	if projectType == ProjectTypeProto {
@@ -379,20 +368,27 @@ func NewConfig(opts InitOptions) (*Config, error) {
 			Source:    firstNonEmpty(opts.ProtoSource, DefaultProtoSource),
 			Version:   firstNonEmpty(opts.ProtoVersion, DefaultProtoVersion),
 		}
-		cfg.Descriptor.FileTemplate = firstNonEmpty(opts.FileTemplate, DefaultProtoDescriptorFileTemplate)
-		cfg.Descriptor.CurrentFileTemplate = firstNonEmpty(opts.CurrentFileTemplate, DefaultProtoCurrentFileTemplate)
-		cfg.Descriptor.ObjectKeyTemplate = firstNonEmpty(opts.ObjectKeyTemplate, DefaultProtoObjectKeyTemplate)
-		cfg.Descriptor.CurrentObjectKeyTemplate = firstNonEmpty(opts.CurrentObjectKeyTemplate, DefaultProtoCurrentObjectKeyTemplate)
+		cfg.Descriptor = DescriptorConfig{
+			Dir:                      firstNonEmpty(opts.DescriptorDir, DefaultDescriptorDir),
+			FileTemplate:             firstNonEmpty(opts.FileTemplate, DefaultProtoDescriptorFileTemplate),
+			CurrentFileTemplate:      firstNonEmpty(opts.CurrentFileTemplate, DefaultProtoCurrentFileTemplate),
+			ObjectKeyTemplate:        firstNonEmpty(opts.ObjectKeyTemplate, DefaultProtoObjectKeyTemplate),
+			CurrentObjectKeyTemplate: firstNonEmpty(opts.CurrentObjectKeyTemplate, DefaultProtoCurrentObjectKeyTemplate),
+			ContentType:              firstNonEmpty(opts.ContentType, DefaultDescriptorContentType),
+		}
 		cfg.Consul = ConsulConfig{
 			Address:              strings.TrimSpace(opts.ConsulAddress),
 			DescriptorCurrentKey: firstNonEmpty(opts.DescriptorCurrentKey, DefaultDescriptorCurrentKeyTemplate),
 		}
+		cfg.S3 = S3Config{
+			Profile:        strings.TrimSpace(opts.S3Profile),
+			Region:         firstNonEmpty(opts.S3Region, DefaultS3Region),
+			Endpoint:       strings.TrimSpace(opts.S3Endpoint),
+			Bucket:         firstNonEmpty(opts.S3Bucket, DefaultS3Bucket),
+			ForcePathStyle: opts.ForcePathStyle,
+		}
 	} else {
 		service := firstNonEmpty(opts.ServiceName, filepath.Base(root))
-		refTemplate := strings.TrimSpace(opts.RefTemplate)
-		if refTemplate == "" && strings.TrimSpace(opts.DescriptorRef) == "" && strings.TrimSpace(opts.S3Endpoint) != "" {
-			refTemplate = "${endpoint}/${bucket}/${service}/${version}.pb"
-		}
 		cfg.Service = ServiceConfig{
 			Name:      service,
 			AppID:     firstNonEmpty(opts.AppID, service),
@@ -404,9 +400,6 @@ func NewConfig(opts InitOptions) (*Config, error) {
 			File:        firstNonEmpty(opts.BootstrapFile, DefaultBootstrapFile),
 			VersionPath: firstNonEmpty(opts.VersionPath, DefaultBootstrapVersionPath),
 		}
-		cfg.Descriptor.FileTemplate = firstNonEmpty(opts.FileTemplate, DefaultDescriptorFileTemplate)
-		cfg.Descriptor.ObjectKeyTemplate = firstNonEmpty(opts.ObjectKeyTemplate, DefaultObjectKeyTemplate)
-		cfg.Descriptor.RefTemplate = refTemplate
 	}
 
 	cfg.ApplyDefaults()
@@ -422,10 +415,10 @@ func (cfg *Config) ApplyDefaults() {
 	if cfg.Project.Type == "" {
 		cfg.Project.Type = ProjectTypeService
 	}
-	if cfg.Descriptor.Dir == "" {
-		cfg.Descriptor.Dir = DefaultDescriptorDir
-	}
 	if cfg.IsProtoProject() {
+		if cfg.Descriptor.Dir == "" {
+			cfg.Descriptor.Dir = DefaultDescriptorDir
+		}
 		if cfg.Proto.Namespace == "" {
 			cfg.Proto.Namespace = firstNonEmpty(cfg.Service.Namespace, DefaultNamespace)
 		}
@@ -450,6 +443,15 @@ func (cfg *Config) ApplyDefaults() {
 		if cfg.Consul.DescriptorCurrentKey == "" {
 			cfg.Consul.DescriptorCurrentKey = DefaultDescriptorCurrentKeyTemplate
 		}
+		if cfg.Descriptor.ContentType == "" {
+			cfg.Descriptor.ContentType = DefaultDescriptorContentType
+		}
+		if cfg.S3.Region == "" {
+			cfg.S3.Region = DefaultS3Region
+		}
+		if cfg.S3.Bucket == "" {
+			cfg.S3.Bucket = DefaultS3Bucket
+		}
 	} else {
 		if cfg.Service.Language == "" {
 			cfg.Service.Language = DefaultLanguage
@@ -466,35 +468,28 @@ func (cfg *Config) ApplyDefaults() {
 		if cfg.Bootstrap.VersionPath == "" {
 			cfg.Bootstrap.VersionPath = DefaultBootstrapVersionPath
 		}
-		if cfg.Descriptor.FileTemplate == "" {
-			cfg.Descriptor.FileTemplate = DefaultDescriptorFileTemplate
-		}
-		if cfg.Descriptor.ObjectKeyTemplate == "" {
-			cfg.Descriptor.ObjectKeyTemplate = DefaultObjectKeyTemplate
-		}
-	}
-	if cfg.Descriptor.ContentType == "" {
-		cfg.Descriptor.ContentType = DefaultDescriptorContentType
-	}
-	if cfg.S3.Region == "" {
-		cfg.S3.Region = DefaultS3Region
-	}
-	if cfg.S3.Bucket == "" {
-		cfg.S3.Bucket = DefaultS3Bucket
 	}
 }
 
 // Validate 校验 project.yaml 中 CLI 直接依赖的字段。
 func (cfg *Config) Validate() error {
 	switch cfg.Project.Type {
-	case ProjectTypeService, ProjectTypeProto:
+	case ProjectTypeService:
+		if !cfg.Descriptor.IsZero() {
+			return fmt.Errorf("service project must not define descriptor config; descriptor publishing belongs to project.type=%s", ProjectTypeProto)
+		}
+		if !cfg.S3.IsZero() {
+			return fmt.Errorf("service project must not define s3 config; descriptor publishing belongs to project.type=%s", ProjectTypeProto)
+		}
+		return nil
+	case ProjectTypeProto:
 		return nil
 	default:
-		return fmt.Errorf("unsupported project type %q", cfg.Project.Type)
+		return unsupportedProjectTypeError(cfg.Project.Type)
 	}
 }
 
-// IsProtoProject 判断当前项目是否是 proto 仓库项目。
+// IsProtoProject 判断当前项目是否是 proto 项目。
 func (cfg *Config) IsProtoProject() bool {
 	return cfg.Project.Type == ProjectTypeProto
 }
@@ -520,24 +515,28 @@ func (cfg *Config) ResolveWithVersion(root, configPath, versionOverride string) 
 		}
 	}
 
+	resolved := &Resolved{
+		ConfigPath:  configPath,
+		ProjectType: cfg.Project.Type,
+		Namespace:   cfg.namespace(),
+		Version:     version,
+	}
+	if !cfg.IsProtoProject() {
+		return resolved, nil
+	}
+
 	vars := cfg.templateVars(version)
 	fileName := expand(cfg.Descriptor.FileTemplate, vars)
 	objectKey := filepath.ToSlash(expand(cfg.Descriptor.ObjectKeyTemplate, vars))
-	resolved := &Resolved{
-		ConfigPath:     configPath,
-		ProjectType:    cfg.Project.Type,
-		Namespace:      cfg.namespace(),
-		Version:        version,
-		DescriptorFile: filepath.Join(root, cfg.Descriptor.Dir, fileName),
-		ObjectKey:      objectKey,
-		DescriptorRef:  cfg.ResolveDescriptorRef(version, objectKey),
-	}
+	resolved.DescriptorFile = filepath.Join(root, cfg.Descriptor.Dir, fileName)
+	resolved.ObjectKey = objectKey
+	resolved.VersionedRef = cfg.ResolveDescriptorObjectRef(objectKey)
 	if cfg.IsProtoProject() {
 		currentFileName := expand(cfg.Descriptor.CurrentFileTemplate, vars)
 		currentObjectKey := filepath.ToSlash(expand(cfg.Descriptor.CurrentObjectKeyTemplate, vars))
 		resolved.CurrentDescriptorFile = filepath.Join(root, cfg.Descriptor.Dir, currentFileName)
 		resolved.CurrentObjectKey = currentObjectKey
-		resolved.CurrentDescriptorRef = cfg.ResolveDescriptorRef(version, currentObjectKey)
+		resolved.CurrentRef = cfg.ResolveDescriptorObjectRef(currentObjectKey)
 		resolved.DescriptorCurrentKey = filepath.ToSlash(expand(cfg.Consul.DescriptorCurrentKey, vars))
 	}
 	return resolved, nil
@@ -571,18 +570,13 @@ func (cfg *Config) ReadVersion(root string) (string, error) {
 	return version, nil
 }
 
-// ResolveDescriptorRef 推导 descriptor_ref。
-func (cfg *Config) ResolveDescriptorRef(version, objectKey string) string {
-	vars := cfg.templateVars(version)
-	vars["key"] = objectKey
-	if cfg.Descriptor.RefTemplate != "" {
-		return expand(cfg.Descriptor.RefTemplate, vars)
-	}
-	if cfg.Descriptor.Ref != "" {
-		return expand(cfg.Descriptor.Ref, vars)
-	}
+// ResolveDescriptorObjectRef 推导 proto descriptor 对象引用。
+func (cfg *Config) ResolveDescriptorObjectRef(objectKey string) string {
 	if cfg.IsProtoProject() && cfg.S3.Bucket != "" && objectKey != "" {
 		return "s3://" + cfg.S3.Bucket + "/" + objectKey
+	}
+	if !cfg.IsProtoProject() {
+		return ""
 	}
 	if cfg.S3.Endpoint == "" || cfg.S3.Bucket == "" || objectKey == "" {
 		return ""
@@ -624,17 +618,17 @@ func Check(root string) ([]CheckResult, *Config, *Resolved) {
 	add("project config", CheckOK, path)
 	add("project type", CheckOK, cfg.Project.Type)
 
-	if module, err := fsutil.ReadModule(root); err != nil {
-		add("go.mod", CheckWarn, "go.mod not found or module line missing")
-	} else {
-		add("go.mod", CheckOK, module)
-	}
 	if !cfg.IsProtoProject() {
+		if module, err := fsutil.ReadModule(root); err != nil {
+			add("go.mod", CheckWarn, "go.mod not found or module line missing")
+		} else {
+			add("go.mod", CheckOK, module)
+		}
 		checkAnyFile(root, "makefile", []string{"Makefile", "makefile"}, "makefile exists", "Makefile or makefile missing", add)
 	}
 	checkFile(root, "buf.yaml", "buf.yaml exists", "buf.yaml missing", add)
-	checkFile(root, "buf.gen.yaml", "buf.gen.yaml exists", "buf.gen.yaml missing", add)
 	if !cfg.IsProtoProject() {
+		checkFile(root, "buf.gen.yaml", "buf.gen.yaml exists", "buf.gen.yaml missing", add)
 		if manifest := findGatewayManifest(root); manifest == "" {
 			add("gateway manifest", CheckWarn, "gateway.manifest.json not found")
 		} else {
@@ -655,12 +649,12 @@ func Check(root string) ([]CheckResult, *Config, *Resolved) {
 		} else {
 			add("bootstrap version", CheckOK, resolved.Version)
 		}
-		if _, err = os.Stat(resolved.DescriptorFile); err != nil {
-			add("descriptor file", CheckWarn, fmt.Sprintf("%s not found", resolved.DescriptorFile))
-		} else {
-			add("descriptor file", CheckOK, resolved.DescriptorFile)
-		}
 		if cfg.IsProtoProject() {
+			if _, err = os.Stat(resolved.DescriptorFile); err != nil {
+				add("descriptor file", CheckWarn, fmt.Sprintf("%s not found", resolved.DescriptorFile))
+			} else {
+				add("descriptor file", CheckOK, resolved.DescriptorFile)
+			}
 			if _, err = os.Stat(resolved.CurrentDescriptorFile); err != nil {
 				add("current descriptor file", CheckWarn, fmt.Sprintf("%s not found", resolved.CurrentDescriptorFile))
 			} else {
@@ -674,22 +668,25 @@ func Check(root string) ([]CheckResult, *Config, *Resolved) {
 		}
 	}
 
-	if cfg.S3.Endpoint == "" {
-		add("s3 endpoint", CheckWarn, "s3.endpoint is empty")
-	} else if _, err = url.ParseRequestURI(cfg.S3.Endpoint); err != nil {
-		add("s3 endpoint", CheckWarn, err.Error())
-	} else {
-		add("s3 endpoint", CheckOK, cfg.S3.Endpoint)
-	}
-	if cfg.S3.Bucket == "" {
-		add("s3 bucket", CheckFailed, "s3.bucket is empty")
-	} else {
-		add("s3 bucket", CheckOK, cfg.S3.Bucket)
-	}
-	if hasCredentials(cfg.S3.Profile) {
-		add("s3 credentials", CheckOK, "credential source detected")
-	} else {
-		add("s3 credentials", CheckWarn, "no env credentials, AWS profile, or ~/.aws/credentials detected")
+	if cfg.IsProtoProject() {
+		endpoint := firstNonEmpty(os.Getenv("FIREFLY_S3_ENDPOINT"), cfg.S3.Endpoint)
+		if endpoint == "" {
+			add("s3 endpoint", CheckWarn, "s3.endpoint and FIREFLY_S3_ENDPOINT are empty")
+		} else if _, err = url.ParseRequestURI(endpoint); err != nil {
+			add("s3 endpoint", CheckWarn, err.Error())
+		} else {
+			add("s3 endpoint", CheckOK, endpoint)
+		}
+		if cfg.S3.Bucket == "" {
+			add("s3 bucket", CheckFailed, "s3.bucket is empty")
+		} else {
+			add("s3 bucket", CheckOK, cfg.S3.Bucket)
+		}
+		if hasCredentials(cfg.S3.Profile) {
+			add("s3 credentials", CheckOK, "credential source detected")
+		} else {
+			add("s3 credentials", CheckWarn, "no env credentials, AWS profile, or ~/.aws/credentials detected")
+		}
 	}
 	return results, cfg, resolved
 }
@@ -719,6 +716,13 @@ func (cfg *Config) namespace() string {
 
 func normalizeProjectType(value string) string {
 	return strings.ToLower(strings.TrimSpace(value))
+}
+
+func unsupportedProjectTypeError(value string) error {
+	if normalizeProjectType(value) == "proto_repo" {
+		return fmt.Errorf("unsupported project type %q; use %q for proto projects", value, ProjectTypeProto)
+	}
+	return fmt.Errorf("unsupported project type %q", value)
 }
 
 // lookup 按点分路径从通用 map 中读取值。
