@@ -68,11 +68,11 @@ type Config struct {
 	Schema string `yaml:"schema" json:"schema"`
 	// Project 保存项目类型。
 	Project ProjectConfig `yaml:"project,omitempty" json:"project,omitempty"`
-	// Service 保存服务身份信息。
+	// Service 保存业务服务身份信息。
 	Service ServiceConfig `yaml:"service,omitempty" json:"service,omitempty"`
 	// Proto 保存 proto 项目信息。
 	Proto ProtoConfig `yaml:"proto,omitempty" json:"proto,omitempty"`
-	// Bootstrap 保存服务版本读取规则。
+	// Bootstrap 保存业务服务版本读取规则。
 	Bootstrap BootstrapConfig `yaml:"bootstrap,omitempty" json:"bootstrap,omitempty"`
 	// Descriptor 保存 proto 项目的 descriptor 本地和远端路径规则。
 	Descriptor DescriptorConfig `yaml:"descriptor,omitempty" json:"descriptor,omitempty"`
@@ -102,6 +102,11 @@ type ServiceConfig struct {
 	Module string `yaml:"module" json:"module"`
 }
 
+// IsZero lets yaml omit service for proto projects.
+func (cfg ServiceConfig) IsZero() bool {
+	return cfg == ServiceConfig{}
+}
+
 // ProtoConfig 保存 proto 项目维度的基础元信息。
 type ProtoConfig struct {
 	// Namespace 是 proto 项目对应的 namespace。
@@ -122,6 +127,11 @@ type BootstrapConfig struct {
 	File string `yaml:"file" json:"file"`
 	// VersionPath 是版本字段路径。
 	VersionPath string `yaml:"version_path" json:"version_path"`
+}
+
+// IsZero lets yaml omit bootstrap for proto projects.
+func (cfg BootstrapConfig) IsZero() bool {
+	return cfg == BootstrapConfig{}
 }
 
 // DescriptorConfig 描述 descriptor 的文件和 URL 推导规则。
@@ -296,11 +306,18 @@ func Load(root string) (*Config, string, error) {
 	if err = yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, path, err
 	}
+	sections, err := topLevelSections(data)
+	if err != nil {
+		return nil, path, err
+	}
 	cfg.ApplyDefaults()
 	if cfg.Schema != SchemaVersion {
 		return nil, path, fmt.Errorf("unsupported project schema %q", cfg.Schema)
 	}
 	if err = cfg.Validate(); err != nil {
+		return nil, path, err
+	}
+	if err = cfg.ValidateTopLevelSections(sections); err != nil {
 		return nil, path, err
 	}
 	return &cfg, path, nil
@@ -420,7 +437,7 @@ func (cfg *Config) ApplyDefaults() {
 			cfg.Descriptor.Dir = DefaultDescriptorDir
 		}
 		if cfg.Proto.Namespace == "" {
-			cfg.Proto.Namespace = firstNonEmpty(cfg.Service.Namespace, DefaultNamespace)
+			cfg.Proto.Namespace = DefaultNamespace
 		}
 		if cfg.Proto.Source == "" {
 			cfg.Proto.Source = DefaultProtoSource
@@ -483,10 +500,32 @@ func (cfg *Config) Validate() error {
 		}
 		return nil
 	case ProjectTypeProto:
+		if !cfg.Service.IsZero() {
+			return fmt.Errorf("proto project must not define service config; proto repositories publish descriptors by namespace")
+		}
+		if !cfg.Bootstrap.IsZero() {
+			return fmt.Errorf("proto project must not define bootstrap config; proto.version is the descriptor release version")
+		}
+		if err := validateProtoTemplates(cfg); err != nil {
+			return err
+		}
 		return nil
 	default:
 		return unsupportedProjectTypeError(cfg.Project.Type)
 	}
+}
+
+// ValidateTopLevelSections 校验项目类型不应携带的顶层配置块。
+func (cfg *Config) ValidateTopLevelSections(sections map[string]bool) error {
+	if cfg.IsProtoProject() {
+		if sections["service"] {
+			return fmt.Errorf("proto project must not define service section; proto repositories publish descriptors by namespace")
+		}
+		if sections["bootstrap"] {
+			return fmt.Errorf("proto project must not define bootstrap section; proto.version is the descriptor release version")
+		}
+	}
+	return nil
 }
 
 // IsProtoProject 判断当前项目是否是 proto 项目。
@@ -694,8 +733,6 @@ func Check(root string) ([]CheckResult, *Config, *Resolved) {
 // templateVars 构造模板变量。
 func (cfg *Config) templateVars(version string) map[string]string {
 	return map[string]string{
-		"service":    cfg.Service.Name,
-		"app_id":     cfg.Service.AppID,
 		"namespace":  cfg.namespace(),
 		"module":     firstNonEmpty(cfg.Proto.Module, cfg.Service.Module),
 		"repo":       cfg.Proto.Repo,
@@ -716,6 +753,52 @@ func (cfg *Config) namespace() string {
 
 func normalizeProjectType(value string) string {
 	return strings.ToLower(strings.TrimSpace(value))
+}
+
+func validateProtoTemplates(cfg *Config) error {
+	templates := map[string]string{
+		"descriptor.file_template":               cfg.Descriptor.FileTemplate,
+		"descriptor.current_file_template":       cfg.Descriptor.CurrentFileTemplate,
+		"descriptor.object_key_template":         cfg.Descriptor.ObjectKeyTemplate,
+		"descriptor.current_object_key_template": cfg.Descriptor.CurrentObjectKeyTemplate,
+		"consul.descriptor_current_key":          cfg.Consul.DescriptorCurrentKey,
+	}
+	for name, value := range templates {
+		forbidden := forbiddenProtoTemplateVar(value)
+		if forbidden != "" {
+			return fmt.Errorf("proto project %s must not use %s; descriptor publishing is namespace-scoped", name, forbidden)
+		}
+	}
+	return nil
+}
+
+func forbiddenProtoTemplateVar(value string) string {
+	for _, name := range []string{"service", "app_id"} {
+		token := "${" + name + "}"
+		if strings.Contains(value, token) {
+			return token
+		}
+	}
+	return ""
+}
+
+func topLevelSections(data []byte) (map[string]bool, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return nil, err
+	}
+	sections := make(map[string]bool)
+	if len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode {
+		return sections, nil
+	}
+	root := doc.Content[0]
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		key := root.Content[i]
+		if key.Kind == yaml.ScalarNode {
+			sections[key.Value] = true
+		}
+	}
+	return sections, nil
 }
 
 func unsupportedProjectTypeError(value string) error {

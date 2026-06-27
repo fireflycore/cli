@@ -262,6 +262,60 @@ project:
 	}
 }
 
+func TestProtoProjectConfigRejectsServiceSection(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, ".firefly/project.yaml", `schema: firefly.project.v1
+project:
+  type: proto
+service:
+  name: lhdht-proto
+proto:
+  namespace: lhdht
+  repo: lhdht/backend/proto
+  module: buf.build/lhdht/grpc
+  source: .
+  version: v0.0.1
+descriptor:
+  object_key_template: ${namespace}/${version}.pb
+s3:
+  bucket: descriptor
+`)
+
+	_, _, err := Load(root)
+	if err == nil {
+		t.Fatal("Load succeeded, want service section rejection")
+	}
+	if !strings.Contains(err.Error(), "proto project must not define service") {
+		t.Fatalf("error = %q, want service section rejection", err.Error())
+	}
+}
+
+func TestProtoProjectConfigRejectsServiceTemplateVariable(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, ".firefly/project.yaml", `schema: firefly.project.v1
+project:
+  type: proto
+proto:
+  namespace: lhdht
+  repo: lhdht/backend/proto
+  module: buf.build/lhdht/grpc
+  source: .
+  version: v0.0.1
+descriptor:
+  object_key_template: ${service}/${version}.pb
+s3:
+  bucket: descriptor
+`)
+
+	_, _, err := Load(root)
+	if err == nil {
+		t.Fatal("Load succeeded, want service template variable rejection")
+	}
+	if !strings.Contains(err.Error(), "descriptor.object_key_template") || !strings.Contains(err.Error(), "${service}") {
+		t.Fatalf("error = %q, want service template variable rejection", err.Error())
+	}
+}
+
 func TestServiceProjectConfigRejectsDescriptorAndS3Sections(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, ".firefly/project.yaml", `schema: firefly.project.v1
