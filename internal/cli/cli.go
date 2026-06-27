@@ -208,7 +208,7 @@ func newProjectInitCommand(runtime Runtime) *cobra.Command {
 	cmd.Flags().StringVar(&opts.Language, "language", project.DefaultLanguage, "project language")
 	cmd.Flags().StringVar(&opts.Module, "module", "", "Go module name, defaults to go.mod")
 	cmd.Flags().StringVar(&opts.ProtoNamespace, "proto-namespace", "", "proto project namespace, defaults to --namespace")
-	cmd.Flags().StringVar(&opts.ProtoRepo, "proto-repo", "", "proto repository identifier")
+	cmd.Flags().StringVar(&opts.ProtoRepo, "proto-repo", "", "proto source identifier")
 	cmd.Flags().StringVar(&opts.ProtoModule, "proto-module", "", "Buf module name or local module identifier")
 	cmd.Flags().StringVar(&opts.ProtoSource, "proto-source", project.DefaultProtoSource, "Buf build source for proto projects")
 	cmd.Flags().StringVar(&opts.ProtoVersion, "proto-version", project.DefaultProtoVersion, "proto descriptor version")
@@ -219,8 +219,6 @@ func newProjectInitCommand(runtime Runtime) *cobra.Command {
 	cmd.Flags().StringVar(&opts.CurrentFileTemplate, "current-file-template", "", "current descriptor file name template")
 	cmd.Flags().StringVar(&opts.ObjectKeyTemplate, "object-key-template", "", "S3 object key template")
 	cmd.Flags().StringVar(&opts.CurrentObjectKeyTemplate, "current-object-key-template", "", "current S3 object key template")
-	cmd.Flags().StringVar(&opts.RefTemplate, "descriptor-ref-template", "", "descriptor_ref template")
-	cmd.Flags().StringVar(&opts.DescriptorRef, "descriptor-ref", "", "fixed descriptor_ref")
 	cmd.Flags().StringVar(&opts.ContentType, "content-type", project.DefaultDescriptorContentType, "descriptor content type")
 	cmd.Flags().StringVar(&opts.ConsulAddress, "consul-address", "", "Consul HTTP API address")
 	cmd.Flags().StringVar(&opts.DescriptorCurrentKey, "descriptor-current-key", "", "descriptor current Consul KV key")
@@ -270,16 +268,16 @@ func newProjectInfoCommand(runtime Runtime) *cobra.Command {
 				fmt.Fprintf(out, "version_error: %s\n", resolveErr)
 			} else {
 				fmt.Fprintf(out, "version: %s\n", resolved.Version)
-				fmt.Fprintf(out, "descriptor.file: %s\n", resolved.DescriptorFile)
-				fmt.Fprintf(out, "descriptor.object_key: %s\n", resolved.ObjectKey)
-				if resolved.DescriptorRef != "" {
-					fmt.Fprintf(out, "descriptor_ref: %s\n", resolved.DescriptorRef)
-				}
 				if cfg.IsProtoProject() {
+					fmt.Fprintf(out, "descriptor.file: %s\n", resolved.DescriptorFile)
+					fmt.Fprintf(out, "descriptor.object_key: %s\n", resolved.ObjectKey)
+					if resolved.VersionedRef != "" {
+						fmt.Fprintf(out, "descriptor.versioned_ref: %s\n", resolved.VersionedRef)
+					}
 					fmt.Fprintf(out, "descriptor.current_file: %s\n", resolved.CurrentDescriptorFile)
 					fmt.Fprintf(out, "descriptor.current_object_key: %s\n", resolved.CurrentObjectKey)
-					if resolved.CurrentDescriptorRef != "" {
-						fmt.Fprintf(out, "descriptor.current_ref: %s\n", resolved.CurrentDescriptorRef)
+					if resolved.CurrentRef != "" {
+						fmt.Fprintf(out, "descriptor.current_ref: %s\n", resolved.CurrentRef)
 					}
 					fmt.Fprintf(out, "descriptor.current_key: %s\n", resolved.DescriptorCurrentKey)
 				}
@@ -431,8 +429,8 @@ func addPushFlags(cmd *cobra.Command, opts *descriptor.PushOptions) {
 	cmd.Flags().StringVar(&opts.Profile, "profile", "", "AWS shared config profile")
 	cmd.Flags().BoolVar(&opts.ForcePathStyle, "force-path-style", false, "use S3 path-style addressing")
 	cmd.Flags().StringVar(&opts.ContentType, "content-type", "", "descriptor content type")
-	cmd.Flags().StringVar(&opts.DescriptorRef, "descriptor-ref", "", "descriptor_ref URL to print")
-	cmd.Flags().StringVar(&opts.CurrentDescriptorRef, "current-descriptor-ref", "", "current descriptor_ref URL to print")
+	cmd.Flags().StringVar(&opts.VersionedRef, "ref", "", "versioned descriptor ref to publish")
+	cmd.Flags().StringVar(&opts.CurrentRef, "current-ref", "", "current descriptor ref to publish")
 	cmd.Flags().StringVar(&opts.AccessKeyID, "access-key-id", "", "S3 access key id")
 	cmd.Flags().StringVar(&opts.SecretAccessKey, "secret-access-key", "", "S3 secret access key")
 	cmd.Flags().StringVar(&opts.SessionToken, "session-token", "", "STS temporary credential session token")
@@ -464,11 +462,11 @@ func writePushResult(out io.Writer, result *descriptor.PushResult) {
 	if result.CurrentKey != "" {
 		fmt.Fprintf(out, "current_key: %s\n", result.CurrentKey)
 	}
-	if result.DescriptorRef != "" {
-		fmt.Fprintf(out, "descriptor_ref: %s\n", result.DescriptorRef)
+	if result.VersionedRef != "" {
+		fmt.Fprintf(out, "descriptor.versioned_ref: %s\n", result.VersionedRef)
 	}
-	if result.CurrentDescriptorRef != "" {
-		fmt.Fprintf(out, "current_descriptor_ref: %s\n", result.CurrentDescriptorRef)
+	if result.CurrentRef != "" {
+		fmt.Fprintf(out, "descriptor.current_ref: %s\n", result.CurrentRef)
 	}
 }
 
