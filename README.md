@@ -43,6 +43,8 @@ project:
 
 `service` 是默认值，兼容现有业务服务仓库。`proto` 表示按 namespace 发布 whole-repo descriptor 的 proto 项目。项目类型值直接叫 `proto`，不要写成 `proto_repo`。
 
+proto 项目不定义 `service` 或 `bootstrap` 配置块；descriptor 路径模板按 namespace/repo/version 推导，不使用 `${service}` 或 `${app_id}`。
+
 ## 初始化
 
 业务服务仓库：
