@@ -26,7 +26,7 @@ const descriptorCurrentSchema = "firefly.api_gateway.descriptor.v1"
 
 // BuildOptions 表示 descriptor build 命令传入的参数。
 type BuildOptions struct {
-	// Root 是 proto 仓库根目录。
+	// Root 是 proto 项目根目录。
 	Root string
 	// Version 覆盖 project.yaml 中的 proto.version。
 	Version string
@@ -60,7 +60,7 @@ type BuildResult struct {
 
 // PushOptions 表示 descriptor push 命令传入的参数。
 type PushOptions struct {
-	// Root 是业务服务或 proto 仓库根目录。
+	// Root 是业务服务或 proto 项目根目录。
 	Root string
 	// Version 覆盖 proto 项目中的 proto.version。
 	Version string
@@ -84,10 +84,10 @@ type PushOptions struct {
 	ForcePathStyle bool
 	// ContentType 覆盖上传对象 content type。
 	ContentType string
-	// DescriptorRef 覆盖命令最终打印的 descriptor_ref。
-	DescriptorRef string
-	// CurrentDescriptorRef 覆盖 current descriptor_ref。
-	CurrentDescriptorRef string
+	// VersionedRef 覆盖命令最终打印的 versioned descriptor ref。
+	VersionedRef string
+	// CurrentRef 覆盖 current descriptor ref。
+	CurrentRef string
 	// AccessKeyID 是显式传入的 access key id。
 	AccessKeyID string
 	// SecretAccessKey 是显式传入的 secret access key。
@@ -118,10 +118,10 @@ type PushResult struct {
 	Key string
 	// CurrentKey 是 current object key。
 	CurrentKey string
-	// DescriptorRef 是最终输出的 descriptor_ref。
-	DescriptorRef string
-	// CurrentDescriptorRef 是 current descriptor_ref。
-	CurrentDescriptorRef string
+	// VersionedRef 是最终输出的 versioned descriptor ref。
+	VersionedRef string
+	// CurrentRef 是 current descriptor ref。
+	CurrentRef string
 	// SHA256 是 descriptor 文件 sha256 摘要。
 	SHA256 string
 	// Size 是 descriptor 文件字节数。
@@ -243,6 +243,9 @@ func Push(ctx context.Context, opts PushOptions) (*PushResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !cfg.IsProtoProject() {
+		return nil, fmt.Errorf("descriptor push requires project.type=%s", project.ProjectTypeProto)
+	}
 	resolved, err := cfg.ResolveWithVersion(opts.Root, configPath, opts.Version)
 	if err != nil {
 		return nil, err
@@ -255,10 +258,10 @@ func Push(ctx context.Context, opts PushOptions) (*PushResult, error) {
 	profile := firstNonEmpty(opts.Profile, cfg.S3.Profile)
 	contentType := firstNonEmpty(opts.ContentType, cfg.Descriptor.ContentType, project.DefaultDescriptorContentType)
 	forcePathStyle := opts.ForcePathStyle || envBool("FIREFLY_S3_FORCE_PATH_STYLE") || cfg.S3.ForcePathStyle
-	descriptorRef := firstNonEmpty(opts.DescriptorRef, resolved.DescriptorRef)
+	versionedRef := firstNonEmpty(opts.VersionedRef, resolved.VersionedRef)
 	currentKey := firstNonEmpty(opts.CurrentKey, resolved.CurrentObjectKey)
 	currentFile := absPath(opts.Root, firstNonEmpty(opts.CurrentFile, resolved.CurrentDescriptorFile, file))
-	currentRef := firstNonEmpty(opts.CurrentDescriptorRef, resolved.CurrentDescriptorRef)
+	currentRef := firstNonEmpty(opts.CurrentRef, resolved.CurrentRef)
 	if bucket == "" {
 		return nil, fmt.Errorf("s3 bucket is empty")
 	}
@@ -273,20 +276,20 @@ func Push(ctx context.Context, opts PushOptions) (*PushResult, error) {
 		return nil, err
 	}
 	result := &PushResult{
-		ProjectType:          resolved.ProjectType,
-		Namespace:            resolved.Namespace,
-		Version:              resolved.Version,
-		File:                 file,
-		CurrentFile:          currentFile,
-		Bucket:               bucket,
-		Key:                  key,
-		CurrentKey:           currentKey,
-		DescriptorRef:        descriptorRef,
-		CurrentDescriptorRef: currentRef,
-		SHA256:               sha,
-		Size:                 size,
-		DryRun:               opts.DryRun,
-		PushedCurrent:        cfg.IsProtoProject() && !opts.SkipCurrentObject,
+		ProjectType:   resolved.ProjectType,
+		Namespace:     resolved.Namespace,
+		Version:       resolved.Version,
+		File:          file,
+		CurrentFile:   currentFile,
+		Bucket:        bucket,
+		Key:           key,
+		CurrentKey:    currentKey,
+		VersionedRef:  versionedRef,
+		CurrentRef:    currentRef,
+		SHA256:        sha,
+		Size:          size,
+		DryRun:        opts.DryRun,
+		PushedCurrent: cfg.IsProtoProject() && !opts.SkipCurrentObject,
 	}
 	if opts.DryRun {
 		return result, nil
@@ -364,8 +367,8 @@ func Publish(ctx context.Context, opts PublishOptions) (*PublishResult, error) {
 		Schema:         descriptorCurrentSchema,
 		Namespace:      resolved.Namespace,
 		Version:        pushResult.Version,
-		Ref:            pushResult.DescriptorRef,
-		CurrentRef:     pushResult.CurrentDescriptorRef,
+		Ref:            pushResult.VersionedRef,
+		CurrentRef:     pushResult.CurrentRef,
 		SHA256:         pushResult.SHA256,
 		ProtoRepo:      cfg.Proto.Repo,
 		SourceRevision: sourceRevision,

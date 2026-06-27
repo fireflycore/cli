@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fireflycore/cli/internal/project"
@@ -87,6 +88,30 @@ func TestPublishDryRunBuildsCurrentJSON(t *testing.T) {
 	}
 	if doc["sha256"] == "" {
 		t.Fatal("sha256 is empty")
+	}
+}
+
+func TestPushRejectsServiceProject(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "go.mod", "module github.com/fireflycore/app\n")
+	cfg, err := project.NewConfig(project.InitOptions{
+		Root:        root,
+		ServiceName: "app",
+		Module:      "github.com/fireflycore/app",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = project.Save(root, cfg, false); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = Push(context.Background(), PushOptions{Root: root, DryRun: true})
+	if err == nil {
+		t.Fatal("expected descriptor push to reject service project")
+	}
+	if !strings.Contains(err.Error(), "descriptor push requires project.type=proto") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
