@@ -82,13 +82,15 @@ func TestCheckAcceptsLowercaseMakefile(t *testing.T) {
 	if status != CheckOK {
 		t.Fatalf("makefile status = %s, want %s", status, CheckOK)
 	}
+	if status := findStatus(results, "buf.yaml"); status != "" {
+		t.Fatalf("buf.yaml status = %s, want no service-project check", status)
+	}
 }
 
 func TestCheckServiceProjectDoesNotRequireDescriptorPublishing(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "go.mod", "module github.com/fireflycore/app\n")
 	writeFile(t, root, "makefile", "proto:\n\tbuf generate\n")
-	writeFile(t, root, "buf.yaml", "version: v2\n")
 	writeFile(t, root, "buf.gen.yaml", "version: v2\n")
 	writeFile(t, root, "conf/bootstrap.json", `{"app":{"version":"v0.0.1"}}`)
 
@@ -105,7 +107,7 @@ func TestCheckServiceProjectDoesNotRequireDescriptorPublishing(t *testing.T) {
 	}
 
 	results, _, _ := Check(root)
-	for _, name := range []string{"descriptor file", "current descriptor file", "descriptor current key", "s3 endpoint", "s3 bucket", "s3 credentials"} {
+	for _, name := range []string{"buf.yaml", "descriptor file", "current descriptor file", "descriptor current key", "s3 endpoint", "s3 bucket", "s3 credentials"} {
 		if status := findStatus(results, name); status != "" {
 			t.Fatalf("%s status = %s, want no service-project check", name, status)
 		}

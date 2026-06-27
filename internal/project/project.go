@@ -665,8 +665,9 @@ func Check(root string) ([]CheckResult, *Config, *Resolved) {
 		}
 		checkAnyFile(root, "makefile", []string{"Makefile", "makefile"}, "makefile exists", "Makefile or makefile missing", add)
 	}
-	checkFile(root, "buf.yaml", "buf.yaml exists", "buf.yaml missing", add)
-	if !cfg.IsProtoProject() {
+	if cfg.IsProtoProject() {
+		checkFile(root, "buf.yaml", "buf.yaml exists", "buf.yaml missing", add)
+	} else {
 		checkFile(root, "buf.gen.yaml", "buf.gen.yaml exists", "buf.gen.yaml missing", add)
 		if manifest := findGatewayManifest(root); manifest == "" {
 			add("gateway manifest", CheckWarn, "gateway.manifest.json not found")
