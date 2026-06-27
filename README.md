@@ -41,7 +41,7 @@ project:
   type: proto
 ```
 
-`service` 是默认值，兼容现有业务服务仓库。`proto` 表示按 namespace 发布 whole-repo descriptor 的 proto 仓库项目。项目类型值直接叫 `proto`，不要写成 `proto_repo`。
+`service` 是默认值，兼容现有业务服务仓库。`proto` 表示按 namespace 发布 whole-repo descriptor 的 proto 项目。项目类型值直接叫 `proto`，不要写成 `proto_repo`。
 
 ## 初始化
 
@@ -51,11 +51,11 @@ project:
 firefly project init \
   --service app \
   --app-id app \
-  --module github.com/fireflycore/app \
-  --s3-endpoint https://minio.example.com \
-  --s3-bucket descriptor \
-  --s3-force-path-style
+  --module github.com/fireflycore/app
 ```
+
+业务服务项目默认不生成、上传或展示 api-gateway descriptor 引用；只保留 gateway manifest 和 route document facts。
+业务服务项目不写入 `descriptor` 或 `s3` 配置块；这两个配置只属于 `project.type: proto` 的 proto 仓库。
 
 proto 仓库：
 
@@ -123,6 +123,8 @@ firefly descriptor build
 ```bash
 firefly descriptor push
 ```
+
+`descriptor build/push/publish` 都要求当前项目为 `project.type: proto`。普通业务服务项目只生成 gateway manifest 和 route document facts，不生成或上传 api-gateway descriptor pb。
 
 只解析路径和计算摘要，不写远端状态：
 
